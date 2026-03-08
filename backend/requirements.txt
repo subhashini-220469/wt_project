@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+motor
+python-dotenv
+pydantic
+httpx
+pymupdf
+python-docx
+sentence-transformers
+numpy
+scipy
+python-multipart
+aiosmtplib
