@@ -1,7 +1,7 @@
 import numpy as np
 from sentence_transformers import SentenceTransformer, util
 from typing import Dict, Any, List
-from models import ResumeData, JDData, ScoringResult
+from ..models.models import ResumeData, JDData, ScoringResult
 
 # Initialize model (MiniLM)
 model = SentenceTransformer('all-MiniLM-L6-v2')

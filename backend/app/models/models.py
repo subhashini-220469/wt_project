@@ -31,6 +31,33 @@ class JDData(BaseModel):
     role_description: str
     education_requirements: str
 
+class ScreeningQuestion(BaseModel):
+    id: str
+    category: str
+    question: str
+    input_type: str  # short_text, long_text, multiple_choice, yes_no, numeric
+    options: Optional[List[str]] = None
+    is_required: bool = True
+    is_custom: bool = False
+
+class SalaryInfo(BaseModel):
+    range: Optional[str] = None
+    pay_type: Optional[str] = None  # Yearly, Monthly, Hourly
+
+class JobPosting(BaseModel):
+    job_title: str
+    company: str
+    workplace_type: str  # In Office, Hybrid, Remote
+    location: str
+    job_type: str  # Full-time, Part-time, Contract, etc.
+    description: str
+    salary: Optional[SalaryInfo] = None
+    screening_questions: List[ScreeningQuestion] = []
+    status: str = "open"  # open, closed
+    deadline: Optional[str] = None
+    # For ATS parsing cache
+    structured_jd: Optional[JDData] = None
+
 class ScoringResult(BaseModel):
     total_score: float
     contact_info_score: float
