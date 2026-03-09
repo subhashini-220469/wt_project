@@ -3,24 +3,12 @@ from typing import List
 from ...controllers.ats_controller import ATSController
 from ...db.database import db
 from ...services.mailer import Mailer
+from ...services.scoring import ScoringEngine
 from ...models.models import ResumeData, JDData, ScoringResult, JobPosting
 from bson import ObjectId
 from pydantic import BaseModel
 
 router = APIRouter()
-
-@router.post("/process")
-async def process_resumes(
-    jd_text: str = Form(...),
-    files: List[UploadFile] = File(...)
-):
-    try:
-        return await ATSController.process_resumes(jd_text, files)
-    except Exception as e:
-        import traceback
-        print(f"❌ CRITICAL ERROR IN /process: {str(e)}")
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/jobs")
 async def create_job(job_post: JobPosting):
@@ -67,18 +55,24 @@ async def get_all_jds():
         j["created_at"] = id_obj.generation_time.isoformat()
     return jds
 
+@router.post("/parse-resume")
+async def parse_resume(file: UploadFile = File(...)):
+    return await ATSController.parse_resume(file)
+
 @router.post("/apply/{job_id}")
 async def apply_to_job(
     job_id: str,
     name: str = Form(...),
     email: str = Form(...),
-    resume: UploadFile = File(...),
-    screening_answers: str = Form("{}") # JSON string
+    resume: UploadFile = File(None), # Optional if override provided
+    screening_answers: str = Form("{}"),
+    resume_data_override: str = Form(None) # JSON string
 ):
     try:
         import json
         answers_dict = json.loads(screening_answers)
-        return await ATSController.apply_to_job(job_id, name, email, resume, answers_dict)
+        override_dict = json.loads(resume_data_override) if resume_data_override else None
+        return await ATSController.apply_to_job(job_id, name, email, resume, answers_dict, override_dict)
     except Exception as e:
         print(f"❌ Error in /apply: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -86,19 +80,48 @@ async def apply_to_job(
 @router.post("/rescore/{job_id}")
 async def rescore_job(job_id: str, resume_data: ResumeData):
     try:
-        from bson import ObjectId
         job = await db.db.jobs.find_one({"_id": ObjectId(job_id)})
         if not job:
             raise HTTPException(status_code=404, detail="Job not found")
         
-        from ...services.scoring import ScoringEngine
-        from ...models.models import JDData
-        jd_data = JDData(**job["structured_jd"])
+        jd_dict = job.get("structured_jd")
+        if not jd_dict:
+            # Fallback if JD wasn't parsed (e.g. old data)
+            from ...services.extraction import LLMParser
+            jd_dict = await LLMParser.parse_jd(job.get("description", ""))
         
+        jd_data = JDData(**jd_dict)
         score_res = ScoringEngine.score_resume(resume_data, jd_data)
         return score_res
     except Exception as e:
         print(f"❌ Error in /rescore: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/jobs/{job_id}")
+async def delete_job(job_id: str):
+    try:
+        result = await db.db.jobs.delete_one({"_id": ObjectId(job_id)})
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Job not found")
+        # Also cleanup resumes for this job
+        await db.db.resumes.delete_many({"jd_id": job_id})
+        return {"message": "Job and associated applications deleted successfully"}
+    except Exception as e:
+        print(f"❌ Error deleting job: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.patch("/jobs/{job_id}/status")
+async def update_job_status(job_id: str, status: str = Form(...)):
+    try:
+        result = await db.db.jobs.update_one(
+            {"_id": ObjectId(job_id)},
+            {"$set": {"status": status}}
+        )
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Job not found")
+        return {"message": f"Job status updated to {status}"}
+    except Exception as e:
+        print(f"❌ Error updating job status: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 class EmailRequest(BaseModel):
@@ -107,10 +130,61 @@ class EmailRequest(BaseModel):
     subject: str
     body: str
 
+@router.get("/analytics/jobs")
+async def get_job_analytics():
+    try:
+        # Get all jobs
+        cursor = db.db.jobs.find({})
+        jobs = await cursor.to_list(length=100)
+        
+        analytics = []
+        for job in jobs:
+            job_id = str(job["_id"])
+            
+            # Count applications
+            total_apps = await db.db.resumes.count_documents({"jd_id": job_id})
+            
+            # Count selected (Shortlisted score >= 70)
+            # Find all matching jd_id
+            cursor_res = db.db.resumes.find({"jd_id": job_id})
+            resumes = await cursor_res.to_list(length=1000)
+            
+            selected = 0
+            interviewed = 0
+            for r in resumes:
+                score = r.get("score", {}).get("total_score", 0)
+                if score >= 70:
+                    selected += 1
+                
+                # Check status for 'interviewed'
+                if r.get("status") == "interviewed":
+                    interviewed += 1
+            
+            analytics.append({
+                "job_id": job_id,
+                "job_title": job.get("job_title", "Untitled"),
+                "company": job.get("company", "Unknown"),
+                "total_applied": total_apps,
+                "selected": selected,
+                "interviews_done": interviewed,
+                "status": job.get("status", "open")
+            })
+            
+        return analytics
+    except Exception as e:
+        print(f"❌ Error in analytics: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/send-emails")
 async def send_bulk_emails(req: EmailRequest, background_tasks: BackgroundTasks):
     if not req.recipient_emails:
         raise HTTPException(status_code=400, detail="No recipients provided")
+    
+    # Update status to 'interviewed' for these candidates
+    await db.db.resumes.update_many(
+        {"jd_id": req.jd_id, "resume_data.email": {"$in": req.recipient_emails}},
+        {"$set": {"status": "interviewed"}}
+    )
     
     # Use FastAPI BackgroundTasks for queueing
     background_tasks.add_task(
