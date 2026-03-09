@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
-
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 // Components
 import Sidebar from './components/Sidebar';
 import ScanningOverlay from './components/ScanningOverlay';
@@ -15,9 +15,11 @@ import HomePage from './pages/HomePage';
 import JobDiscoveryPage from './pages/JobDiscoveryPage';
 import CandidateApplyPage from './pages/CandidateApplyPage';
 import ResumeUploadPage from './pages/ResumeUploadPage';
+import AuthPage from './pages/AuthPage';
 
 // Services
 import { apiService } from './services/api';
+import authClient from './services/authClient';
 
 function App() {
     const [userRole, setUserRole] = useState(null); // 'employer' or 'employee'
@@ -171,7 +173,13 @@ function App() {
         setActiveTab(role === 'employer' ? 'upload' : 'discover');
     };
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        try {
+            await authClient.post('/api/auth/logout');
+        } catch {
+            // ignore — still clear local state
+        }
+        localStorage.removeItem('accessToken');
         setUserRole(null);
     };
 
@@ -181,7 +189,15 @@ function App() {
     };
 
     if (!userRole) {
-        return <HomePage onRoleSelect={handleRoleSelect} />;
+        return (
+            <Routes>
+                <Route path="/auth" element={
+                    <AuthPage onLoginSuccess={(role) => handleRoleSelect(role === 'hr' ? 'employer' : 'employee')} />
+                } />
+                {/* Make auth the default for now when unauthorized */}
+                <Route path="*" element={<Navigate to="/auth" replace />} />
+            </Routes>
+        );
     }
 
     return (
@@ -284,4 +300,12 @@ function App() {
     );
 }
 
-export default App;
+export default function AppWrapper() {
+    return (
+        <Router>
+            <Routes>
+                <Route path="/*" element={<App />} />
+            </Routes>
+        </Router>
+    )
+}
