@@ -66,3 +66,4 @@ class ScoringResult(BaseModel):
     education_score: float
     formatting_score: float
     details: Dict
+    feedback: Dict[str, str] = {}

@@ -16,115 +16,137 @@ EDUCATION_LEVELS = {
 
 class ScoringEngine:
     @staticmethod
-    def calculate_contact_info(resume: ResumeData) -> float:
+    def calculate_contact_info(resume: ResumeData) -> (float, str):
         score = 0
+        missing = []
         if resume.name and resume.name != "Unknown": score += 3
+        else: missing.append("Name")
         if resume.phone: score += 3
+        else: missing.append("Phone")
         if resume.email: score += 3
+        else: missing.append("Email")
         if resume.location: score += 3
+        else: missing.append("Location")
         if resume.linkedin: score += 3
-        return float(score)
+        else: missing.append("LinkedIn")
+        
+        feedback = "Perfect contact details provided." if not missing else f"Missing: {', '.join(missing)}. Recruiters need these to reach you."
+        return float(score), feedback
 
     @staticmethod
-    def calculate_skills_match(resume_skills: List[str], jd_skills: List[str]) -> float:
+    def calculate_skills_match(resume_skills: List[str], jd_skills: List[str]) -> (float, str):
         if not jd_skills:
-            return 20.0
+            return 0.0, "No skills required for this job description."
         
-        # 1. Exact matches
         resume_skills_lower = [s.lower() for s in resume_skills]
         jd_skills_lower = [s.lower() for s in jd_skills]
         
-        exact_matches = set(resume_skills_lower).intersection(set(jd_skills_lower))
-        remaining_jd_skills = [s for s in jd_skills_lower if s not in exact_matches]
-        remaining_resume_skills = [s for s in resume_skills_lower if s not in exact_matches]
+        matched = []
+        missing = []
         
-        exact_score = (len(exact_matches) / len(jd_skills)) * 20.0
+        jd_embeddings = model.encode(jd_skills_lower)
+        res_embeddings = model.encode(resume_skills_lower) if resume_skills_lower else []
         
-        # 2. Semantic matches for leftovers
-        semantic_score = 0.0
-        if remaining_jd_skills and remaining_resume_skills:
-            jd_embeddings = model.encode(remaining_jd_skills)
-            res_embeddings = model.encode(remaining_resume_skills)
-            
+        if len(res_embeddings) > 0:
             cos_sim = util.cos_sim(res_embeddings, jd_embeddings)
-            
-            # For each remaining JD skill, find the best match in resume
-            matches_found = 0
-            for i in range(len(remaining_jd_skills)):
+            for i, jd_skill in enumerate(jd_skills):
                 max_sim = cos_sim[:, i].max().item()
                 if max_sim >= 0.85:
-                    matches_found += 1
-            
-            semantic_score = (matches_found / len(jd_skills)) * 20.0
-            
-        total_skills_score = min(20.0, exact_score + semantic_score)
-        return total_skills_score
+                    matched.append(jd_skill)
+                else:
+                    missing.append(jd_skill)
+        else:
+            missing = jd_skills
+
+        score = (len(matched) / len(jd_skills)) * 20.0
+        feedback = f"Matched {len(matched)} skills: {', '.join(matched[:5])}{'...' if len(matched)>5 else ''}. "
+        if missing:
+            feedback += f"Missing critical skills like: {', '.join(missing[:3])}."
+        
+        return min(20.0, float(score)), feedback
 
     @staticmethod
-    def calculate_experience_score(resume: ResumeData, jd: JDData) -> float:
+    def calculate_experience_score(resume: ResumeData, jd: JDData) -> (float, str):
         is_fresher = resume.experience_years < 1.0 or not resume.recent_jobs
         
         if is_fresher:
-            # Fresher Path: 30pts based on project relevance + 2pt GitHub bonus (capped at 30)
-            # For simplicity, we'll use semantic similarity of project names/desc to JD role
             if not resume.projects:
-                return 0.0
+                return 0.0, "No relevant projects found. Freshers need at least 2-3 projects to qualify."
             
             project_embeddings = model.encode(resume.projects)
             jd_role_embedding = model.encode([jd.role_description])
-            
             cos_sim = util.cos_sim(project_embeddings, jd_role_embedding)
             avg_relevance = cos_sim.mean().item()
             
-            project_score = avg_relevance * 28.0 # Base 28
-            github_bonus = 2.0 if any("github" in p.lower() for p in resume.projects) or (resume.linkedin and "github" in resume.linkedin.lower()) else 0.0
+            score = avg_relevance * 28.0
+            github_bonus = 2.0 if any("github" in p.lower() for p in resume.projects) else 0.0
+            total = min(30.0, float(score + github_bonus))
             
-            return min(30.0, float(project_score + github_bonus))
+            feedback = f"Analyzed {len(resume.projects)} projects. "
+            if avg_relevance < 0.5: feedback += "Project relevance to this role is low."
+            else: feedback += "Projects show strong alignment with JD."
+            return total, feedback
         else:
-            # Experienced Path: 15pts Time Match + 15pts Role Relevance
-            # Time Match
             time_score = (min(resume.experience_years, jd.min_experience_years * 2) / jd.min_experience_years) * 15.0 if jd.min_experience_years > 0 else 15.0
             time_score = min(15.0, time_score)
             
-            # Role Relevance (Semantic match of recent jobs to JD description)
             job_embeddings = model.encode(resume.recent_jobs)
             jd_role_embedding = model.encode([jd.role_description])
-            
             cos_sim = util.cos_sim(job_embeddings, jd_role_embedding)
-            role_relevance_score = cos_sim.max().item() * 15.0
+            max_relevance = cos_sim.max().item()
+            role_score = max_relevance * 15.0
             
-            return min(30.0, float(time_score + role_relevance_score))
+            total = min(30.0, float(time_score + role_score))
+            feedback = f"Found {resume.experience_years} years exp vs {jd.min_experience_years} required. "
+            if max_relevance < 0.6: feedback += "Work history relevance is low."
+            else: feedback += "Previous roles demonstrate highly relevant background."
+            return total, feedback
 
     @staticmethod
-    def calculate_education_score(resume_level: str, jd_level: str) -> float:
+    def calculate_education_score(resume_level: str, jd_level: str) -> (float, str):
         res_val = EDUCATION_LEVELS.get(resume_level, 0)
-        jd_val = EDUCATION_LEVELS.get(jd_level, 2) # Default JD to Bachelors if unknown
+        jd_val = EDUCATION_LEVELS.get(jd_level, 2)
         
-        if jd_val == 0: return 20.0
+        if jd_val == 0: return 20.0, "No specific education required."
         
         score = (res_val / jd_val) * 20.0
-        return min(20.0, float(score))
+        total = min(20.0, float(score))
+        
+        if res_val >= jd_val:
+            feedback = f"Education matches or exceeds requirement ({resume_level} vs {jd_level})."
+        else:
+            feedback = f"Requested {jd_level}, found {resume_level}."
+        
+        return total, feedback
 
     @classmethod
     def score_resume(cls, resume: ResumeData, jd: JDData) -> ScoringResult:
-        contact_info_score = cls.calculate_contact_info(resume)
-        skills_match_score = cls.calculate_skills_match(resume.skills, jd.required_skills)
-        experience_score = cls.calculate_experience_score(resume, jd)
-        education_score = cls.calculate_education_score(resume.education_level, jd.education_requirements)
-        formatting_score = resume.formatting_score # Out of 15 from LLM
+        c_score, c_fb = cls.calculate_contact_info(resume)
+        s_score, s_fb = cls.calculate_skills_match(resume.skills, jd.required_skills)
+        ex_score, ex_fb = cls.calculate_experience_score(resume, jd)
+        ed_score, ed_fb = cls.calculate_education_score(resume.education_level, jd.education_requirements)
+        f_score = resume.formatting_score
+        f_fb = "Clear structure and professional layout detected." if f_score > 10 else "Resume layout is messy; use standard sections like Skills and Experience."
         
-        total_score = contact_info_score + skills_match_score + experience_score + education_score + formatting_score
+        total_score = round(c_score + s_score + ex_score + ed_score + f_score, 1)
         
         return ScoringResult(
-            total_score=round(total_score, 2),
-            contact_info_score=contact_info_score,
-            skills_match_score=skills_match_score,
-            experience_score=experience_score,
-            education_score=education_score,
-            formatting_score=formatting_score,
+            total_score=total_score,
+            contact_info_score=c_score,
+            skills_match_score=s_score,
+            experience_score=ex_score,
+            education_score=ed_score,
+            formatting_score=f_score,
             details={
                 "skills_count": len(resume.skills),
                 "exp_years": resume.experience_years,
                 "education": resume.education_level
+            },
+            feedback={
+                "contact": c_fb,
+                "skills": s_fb,
+                "experience": ex_fb,
+                "education": ed_fb,
+                "formatting": f_fb
             }
         )
