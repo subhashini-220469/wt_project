@@ -160,18 +160,84 @@ document.addEventListener('DOMContentLoaded', () => {
         statTotal.innerText = results.length;
         statShortlisted.innerText = shortlistCount;
     }
-    // Export Logic
+    //export logic
     document.getElementById('export-btn').addEventListener('click', () => {
-        const btn = document.getElementById('export-btn');
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Exporting...';
-        setTimeout(() => {
-            btn.innerHTML = '<i class="fa-solid fa-check"></i> Exported Successfully!';
-            btn.classList.add('score-high');
-            setTimeout(() => {
-                btn.innerHTML = originalText;
-                btn.classList.remove('score-high');
-            }, 3000);
-        }, 1500);
+
+    const btn = document.getElementById('export-btn');
+    const originalText = btn.innerHTML;
+
+    /* button animation */
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Exporting...';
+
+    /* CSV EXPORT LOGIC */
+
+    const table = document.querySelector("table");
+    let csv = [];
+
+    let rows = table.querySelectorAll("tr");
+
+    if(rows.length <= 1){
+    csv.push("No candidates available");
+    }
+    else{
+
+    rows.forEach(row => {
+
+    let cols = row.querySelectorAll("td, th");
+    let rowData = [];
+
+    cols.forEach(col => rowData.push(col.innerText));
+
+    csv.push(rowData.join(","));
+
     });
+
+    }
+
+    const csvFile = new Blob([csv.join("\n")], { type: "text/csv" });
+
+    const downloadLink = document.createElement("a");
+    downloadLink.href = URL.createObjectURL(csvFile);
+    downloadLink.download = "shortlisted_candidates.csv";
+
+    downloadLink.click();
+
+    /* success animation */
+
+    setTimeout(() => {
+
+    btn.innerHTML = '<i class="fa-solid fa-check"></i> Exported Successfully!';
+    btn.classList.add('score-high');
+
+    setTimeout(() => {
+    btn.innerHTML = originalText;
+    btn.classList.remove('score-high');
+    }, 3000);
+
+    },1500);
+
+    });
+    
+
+    const toggleBtn = document.getElementById("themeToggle");
+
+    toggleBtn.addEventListener("click", function(){
+
+        document.body.classList.toggle("dark-mode");
+
+        if(document.body.classList.contains("dark-mode")){
+            toggleBtn.innerHTML = "◑";
+        }
+        else{
+            toggleBtn.innerHTML = "◐";
+        }
+
+});
+
+
+    
+
+   
+
+
 });
