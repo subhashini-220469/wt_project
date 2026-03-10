@@ -33,6 +33,7 @@ body {
     display: flex;
     min-height: 100vh;
 }
+
 /* Sidebar */
 .sidebar {
     width: 220px;
@@ -77,6 +78,89 @@ body {
     background: rgba(99, 102, 241, 0.25);
     color: #a78bfa;
     border-left: 3px solid #a78bfa;
+}
+/*toggle button*/
+/* Toggle button position */
+#themeToggle{
+    position: fixed;
+    top: 15px;
+    right: 802px;
+    padding: 10px 15px;
+    font-size: 18px;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    background-color: #1e90ff;
+    color: white;
+}
+/* Whole page background */
+.dark-mode{
+    background-color:#121212;
+    color:white;
+}
+
+/* Main content area */
+.dark-mode .main-content{
+    background-color:#121212;
+    
+}
+
+/* Sidebar */
+.dark-mode .sidebar{
+    background-color:#0f172a;
+}
+
+/* Cards */
+.dark-mode .card{
+    background-color:#1e1e1e;
+    color:white;
+}
+.dark-mode #jd-text{
+    background-color: #1f2937;
+    color: white;
+    border: 1px solid #4b5563;
+}
+
+/* Input and textarea */
+.dark-mode textarea,
+.dark-mode input{
+    background-color:#2a2a2a;
+    color:white;
+    border:1px solid #555;
+}
+
+/* Button */
+.dark-mode button{
+    background-color:#2563eb;
+    color:white;
+}
+.dark-mode .top-header{
+    background-color: #1f2937;
+    color: white;
+}
+
+#themeToggle{
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+
+    background: linear-gradient(135deg,#60a5fa,#2563eb);
+
+    color: white;
+    font-size: 20px;
+    right: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    
+    transition: all 0.3s ease;
+}
+
+#themeToggle:hover{
+    transform: scale(1.1);
 }
 /* Main Content */
 .main-content {

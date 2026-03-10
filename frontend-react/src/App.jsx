@@ -20,6 +20,7 @@ import ResumeUploadPage from './pages/ResumeUploadPage';
 import { apiService } from './services/api';
 
 function App() {
+    const [darkMode,setDarkMode] = useState(null);
     const [userRole, setUserRole] = useState(null); // 'employer' or 'employee'
     const [activeTab, setActiveTab] = useState('discover');
     const [selectedJobToApply, setSelectedJobToApply] = useState(null);
@@ -37,6 +38,14 @@ function App() {
     const [showEditModal, setShowEditModal] = useState(false);
     const [candidateStatuses, setCandidateStatuses] = useState({});
     const [allFinished, setAllFinished] = useState(false);
+    //toggle button
+    useEffect(() => {
+    if (darkMode) {
+        document.body.classList.add("dark-mode");
+    } else {
+        document.body.classList.remove("dark-mode");
+    }
+    }, [darkMode]);
 
     // Fetch JDs for Automation Tab
     useEffect(() => {
@@ -187,8 +196,21 @@ function App() {
                                                 'Email Automation'}
                     </h1>
                     <div className="user-profile">
-                        <img src={`https://ui-avatars.com/api/?name=HR+Admin&background=6366f1&color=fff`} alt="Profile" />
+
+                        <button
+                            className="theme-toggle"
+                            onClick={() => setDarkMode(!darkMode)}
+                        >
+                            {darkMode ? "◑" : "◐"}
+                        </button>
+
+                        <img
+                            src={`https://ui-avatars.com/api/?name=HR+Admin&background=6366f1&color=fff`}
+                            alt="Profile"
+                        />
+
                     </div>
+                    
                 </header>
 
                 <div className="content-wrapper">
