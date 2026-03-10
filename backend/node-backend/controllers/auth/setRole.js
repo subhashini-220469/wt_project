@@ -7,11 +7,15 @@ dotenv.config();
 
 export const setRole = async (req, res) => {
   try {
-    const { role } = req.body;
+    const { role, officeName } = req.body;
     const userId = req.user.userId;
 
     if (!["user", "hr"].includes(role)) {
       return res.status(400).json({ error: "Invalid role" });
+    }
+
+    if (role === 'hr' && (!officeName || officeName.trim() === "")) {
+      return res.status(400).json({ error: "Company name is required for HR recruiters" });
     }
 
     const user = await User.findById(userId);
@@ -24,8 +28,11 @@ export const setRole = async (req, res) => {
       return res.status(400).json({ error: "Role already set" });
     }
 
-    // update role
+    // update details
     user.role = role;
+    if (role === 'hr') {
+      user.officeName = officeName;
+    }
 
     // create new tokens with role
     const accessToken = jwt.sign(

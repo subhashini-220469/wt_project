@@ -16,6 +16,7 @@ import JobDiscoveryPage from './pages/JobDiscoveryPage';
 import CandidateApplyPage from './pages/CandidateApplyPage';
 import ResumeUploadPage from './pages/ResumeUploadPage';
 import AuthPage from './pages/AuthPage';
+import ProfilePage from './pages/ProfilePage';
 
 // Services
 import { apiService } from './services/api';
@@ -82,7 +83,8 @@ function App() {
             'discover': 'Browse Jobs | HireAI Pro',
             'resume': 'My Resume | HireAI Pro',
             'my-apps': 'My Applications | HireAI Pro',
-            'apply': 'Apply for Job | HireAI Pro'
+            'apply': 'Apply for Job | HireAI Pro',
+            'profile': 'My Profile | HireAI Pro'
         };
 
         const pageTitle = titles[activeTab] || 'HireAI Pro';
@@ -296,6 +298,10 @@ function App() {
                                     />
                                 )}
                             </>
+                        )}
+
+                        {activeTab === 'profile' && (
+                            <ProfilePage />
                         )}
                     </AnimatePresence>
                 </div>

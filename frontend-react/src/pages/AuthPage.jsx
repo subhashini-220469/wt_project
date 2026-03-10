@@ -25,6 +25,7 @@ const AuthPage = ({ onLoginSuccess }) => {
   // State for first-time Google users who need to pick a role
   const [pendingGoogleUser, setPendingGoogleUser] = useState(null); // { accessToken }
   const [selectedRole, setSelectedRole] = useState(null);
+  const [googleOfficeName, setGoogleOfficeName] = useState('');
   const [roleLoading, setRoleLoading] = useState(false);
 
   const navigate = useNavigate();
@@ -75,12 +76,19 @@ const AuthPage = ({ onLoginSuccess }) => {
 
   const handleSetRole = async () => {
     if (!selectedRole) return;
+    if (selectedRole === 'hr' && !googleOfficeName.trim()) {
+        setError('Company name is required for HR recruiters');
+        return;
+    }
     setRoleLoading(true);
     setError(null);
     try {
       // Use authClient – it attaches the stored access token automatically
       localStorage.setItem('accessToken', pendingGoogleUser.accessToken);
-      const res = await authClient.post('/api/auth/set-role', { role: selectedRole });
+      const res = await authClient.post('/api/auth/set-role', { 
+          role: selectedRole,
+          officeName: selectedRole === 'hr' ? googleOfficeName : undefined
+      });
 
       localStorage.setItem('accessToken', res.data.accessToken);
 
@@ -215,6 +223,25 @@ const AuthPage = ({ onLoginSuccess }) => {
                 </motion.button>
               </div>
 
+              <AnimatePresence>
+                {selectedRole === 'hr' && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                    animate={{ opacity: 1, height: 'auto', marginTop: 24 }}
+                    exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                    className="input-group"
+                  >
+                    <Building className="input-icon" size={18} />
+                    <input
+                      type="text"
+                      placeholder="Enter Company Name"
+                      value={googleOfficeName}
+                      onChange={(e) => setGoogleOfficeName(e.target.value)}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               <button
                 className="submit-btn"
                 style={{ marginTop: '2rem' }}
@@ -243,16 +270,42 @@ const AuthPage = ({ onLoginSuccess }) => {
             transition={{ duration: 0.8 }}
             className="visual-content"
           >
-            <h1>{isLogin ? 'Welcome Back!' : 'Start Your Journey'}</h1>
-            <p>Join our modern platform using standard authentication or Google single sign-on to explore amazing opportunities.</p>
+            <div className="system-badge">
+              <span className="badge-dot"></span>
+              AI-Powered ATS
+            </div>
+            <h1>{isLogin ? 'Find the Perfect Candidate, Faster.' : 'Automate Your Recruitment'}</h1>
+            <p>Our intelligent system uses advanced AI to score resumes against job descriptions and automate candidate outreach via email.</p>
             <div className="glass-card mockup-card">
               <div className="mockup-header">
                 <div className="dots"><span></span><span></span><span></span></div>
+                <div className="mockup-title">Candidate Screening</div>
               </div>
               <div className="mockup-body">
-                <div className="mockup-line w-3-4"></div>
-                <div className="mockup-line w-full"></div>
-                <div className="mockup-line w-5-6"></div>
+                <div className="mockup-candidate">
+                  <div className="candidate-avatar"></div>
+                  <div className="candidate-info">
+                    <div className="mockup-line w-1-2"></div>
+                    <div className="mockup-line w-3-4"></div>
+                  </div>
+                  <div className="match-score">92% Match</div>
+                </div>
+                <div className="mockup-candidate">
+                  <div className="candidate-avatar"></div>
+                  <div className="candidate-info">
+                    <div className="mockup-line w-1-2"></div>
+                    <div className="mockup-line w-3-4"></div>
+                  </div>
+                  <div className="match-score match-good">85% Match</div>
+                </div>
+                <div className="mockup-candidate">
+                  <div className="candidate-avatar"></div>
+                  <div className="candidate-info">
+                    <div className="mockup-line w-1-2"></div>
+                    <div className="mockup-line w-5-6"></div>
+                  </div>
+                  <div className="match-score match-avg">71% Match</div>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -365,11 +418,6 @@ const AuthPage = ({ onLoginSuccess }) => {
                 />
               </div>
 
-              {isLogin && (
-                <div className="forgot-password">
-                  <a href="#">Forgot password?</a>
-                </div>
-              )}
 
               <button type="submit" className="submit-btn" disabled={loading}>
                 {loading ? 'Processing...' : (isLogin ? 'Sign In' : 'Sign Up')}

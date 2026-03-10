@@ -39,7 +39,26 @@ body {
     padding: 2.5rem 1.5rem;
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
     z-index: 20;
+}
+
+.nav-bottom {
+    margin-top: auto;
+    padding-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.logout-btn-sidebar {
+    color: #ef4444 !important;
+}
+
+.logout-btn-sidebar:hover {
+    background: rgba(239, 68, 68, 0.1) !important;
+    color: #f87171 !important;
 }
 
 .logo {

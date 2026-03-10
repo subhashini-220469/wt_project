@@ -82,10 +82,19 @@ const Sidebar = ({ activeTab, setActiveTab, userRole, onLogout }) => {
                     </>
                 )}
 
-                <button className="nav-item logout-btn-sidebar" onClick={onLogout}>
-                    <LogOut size={18} />
-                    <span>Switch Role</span>
-                </button>
+                <div className="nav-bottom">
+                    <button
+                        className={`nav-item ${activeTab === 'profile' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('profile')}
+                    >
+                        <UserCircle size={18} />
+                        <span>My Profile</span>
+                    </button>
+                    <button className="nav-item logout-btn-sidebar" onClick={onLogout}>
+                        <LogOut size={18} />
+                        <span>Logout</span>
+                    </button>
+                </div>
             </nav>
         </aside>
     );
