@@ -29,6 +29,14 @@ const AuthPage = ({ onLoginSuccess }) => {
 
   const navigate = useNavigate();
 
+  React.useEffect(() => {
+    if (pendingGoogleUser) {
+        document.title = 'Select Role | HireAI Pro';
+    } else {
+        document.title = isLogin ? 'Sign In | HireAI Pro' : 'Create Account | HireAI Pro';
+    }
+  }, [isLogin, pendingGoogleUser]);
+
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };

@@ -72,6 +72,43 @@ function App() {
         }
     }, [selectedJd]);
 
+    // Update document title dynamically based on active tab
+    useEffect(() => {
+        const titles = {
+            'upload': 'Resume Screening | HireAI Pro',
+            'post-job': 'Post a Job | HireAI Pro',
+            'dashboard': 'Analytics | HireAI Pro',
+            'automation': 'Outreach | HireAI Pro',
+            'discover': 'Browse Jobs | HireAI Pro',
+            'resume': 'My Resume | HireAI Pro',
+            'my-apps': 'My Applications | HireAI Pro',
+            'apply': 'Apply for Job | HireAI Pro'
+        };
+
+        const pageTitle = titles[activeTab] || 'HireAI Pro';
+        document.title = pageTitle;
+    }, [activeTab]);
+
+
+    const handleAnalyze = async () => {
+        if (files.length === 0) return alert("Please upload at least one resume.");
+        if (!jdText.trim()) return alert("Please provide a Job Description.");
+
+        setIsAnalyzing(true);
+        try {
+            const data = await apiService.processResumes(jdText, files);
+            setTimeout(() => {
+                setResults(data);
+                setIsAnalyzing(false);
+                setActiveTab('dashboard');
+            }, 1000);
+        } catch (error) {
+            console.error(error);
+            alert("Error connecting to backend? Make sure it's running.");
+            setIsAnalyzing(false);
+        }
+    };
+
     const sendSingleEmail = async (email) => {
         setCandidateStatuses(prev => ({ ...prev, [email]: 'sending' }));
         try {
@@ -210,51 +247,55 @@ function App() {
                 <div className="content-wrapper">
                     <AnimatePresence mode="wait">
 
-                        {activeTab === 'discover' && (
-                            <JobDiscoveryPage onApply={handleApplyJob} />
+                        {userRole === 'employer' && (
+                            <>
+                                {activeTab === 'post-job' && (
+                                    <PostJobPage onJobPosted={handlePostJob} />
+                                )}
+                                {activeTab === 'managed-jobs' && (
+                                    <ManagedJobsPage onViewAnalytics={handleViewAnalytics} />
+                                )}
+                                {activeTab === 'dashboard' && (
+                                    <DashboardPage results={results} />
+                                )}
+                                {activeTab === 'automation' && (
+                                    <AutomationPage
+                                        jdsList={jdsList}
+                                        selectedJd={selectedJd}
+                                        setSelectedJd={setSelectedJd}
+                                        candidatesForJd={candidatesForJd}
+                                        selectedCandidates={selectedCandidates}
+                                        toggleCandidate={toggleCandidate}
+                                        candidateStatuses={candidateStatuses}
+                                        isSendingEmails={isSendingEmails}
+                                        handleSendBroadcast={handleSendBroadcast}
+                                        handleRetry={handleRetry}
+                                        setShowEditModal={setShowEditModal}
+                                        allFinished={allFinished}
+                                        formatDate={formatDate}
+                                    />
+                                )}
+                            </>
                         )}
 
-                        {activeTab === 'resume' && (
-                            <ResumeUploadPage />
-                        )}
-
-                        {activeTab === 'apply' && selectedJobToApply && (
-                            <CandidateApplyPage
-                                job={selectedJobToApply}
-                                onBack={() => {
-                                    setSelectedJobToApply(null);
-                                    setActiveTab('discover');
-                                }}
-                            />
-                        )}
-                        {activeTab === 'dashboard' && (
-                            <DashboardPage results={results} />
-                        )}
-
-                        {activeTab === 'post-job' && (
-                            <PostJobPage onJobPosted={handlePostJob} />
-                        )}
-
-                        {activeTab === 'managed-jobs' && (
-                            <ManagedJobsPage onViewAnalytics={handleViewAnalytics} />
-                        )}
-
-                        {activeTab === 'automation' && (
-                            <AutomationPage
-                                jdsList={jdsList}
-                                selectedJd={selectedJd}
-                                setSelectedJd={setSelectedJd}
-                                candidatesForJd={candidatesForJd}
-                                selectedCandidates={selectedCandidates}
-                                toggleCandidate={toggleCandidate}
-                                candidateStatuses={candidateStatuses}
-                                isSendingEmails={isSendingEmails}
-                                handleSendBroadcast={handleSendBroadcast}
-                                handleRetry={handleRetry}
-                                setShowEditModal={setShowEditModal}
-                                allFinished={allFinished}
-                                formatDate={formatDate}
-                            />
+                        {userRole === 'employee' && (
+                            <>
+                                {activeTab === 'discover' && (
+                                    <JobDiscoveryPage onApply={handleApplyJob} />
+                                )}
+                                {activeTab === 'resume' && (
+                                    <ResumeUploadPage />
+                                )}
+                                {activeTab === 'apply' && selectedJobToApply && (
+                                    <CandidateApplyPage
+                                        job={selectedJobToApply}
+                                        onBack={() => {
+                                            setSelectedJobToApply(null);
+                                            setActiveTab('discover');
+                                        }}
+                                    />
+                                )}
+                            </>
                         )}
                     </AnimatePresence>
                 </div>
