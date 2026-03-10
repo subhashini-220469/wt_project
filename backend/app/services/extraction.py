@@ -100,16 +100,21 @@ class LLMParser:
         jd_text = jd_text[:6000]
         
         prompt = f"""
-        Extract the following information from the Job Description text and return it as a JSON object:
-        - job_title
-        - required_skills (list)
-        - min_experience_years (float)
-        - role_description (detailed summary for semantic matching)
-        - education_requirements (PhD, Masters, Bachelors, High School)
+        Extract the structured requirements from this Job Description. 
+        Be competitive in finding required skills even if they are implied by the title (e.g. if the title is 'Python Developer', add 'Python' to skills).
+        
+        Return a JSON object with:
+        - job_title: The official title
+        - required_skills: A list of specific technical and soft skills (MUST NOT BE EMPTY if text relates to technology or professional work)
+        - min_experience_years: Minimum years (default to 0.0 if not found)
+        - role_description: A 3-4 sentence paragraph describing the core mission of the role
+        - education_requirements: PhD, Masters, Bachelors, or High School
 
         JD Text:
         {jd_text}
         """
+        
+        print(f"🔍 AI is extracting requirements from JD (Length: {len(jd_text)} chars)...")
 
         headers = {
             "Authorization": f"Bearer {OPENROUTER_API_KEY}",

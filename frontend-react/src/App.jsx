@@ -7,10 +7,10 @@ import ScanningOverlay from './components/ScanningOverlay';
 import EmailModal from './components/EmailModal';
 
 // Pages
-import UploadPage from './pages/UploadPage';
-import DashboardPage from './pages/DashboardPage';
 import AutomationPage from './pages/AutomationPage';
+import DashboardPage from './pages/DashboardPage';
 import PostJobPage from './pages/PostJobPage';
+import ManagedJobsPage from './pages/ManagedJobsPage';
 import HomePage from './pages/HomePage';
 import JobDiscoveryPage from './pages/JobDiscoveryPage';
 import CandidateApplyPage from './pages/CandidateApplyPage';
@@ -23,13 +23,10 @@ import authClient from './services/authClient';
 
 function App() {
     const [userRole, setUserRole] = useState(null); // 'employer' or 'employee'
-    const [activeTab, setActiveTab] = useState('upload');
-    const [jdText, setJdText] = useState('');
-    const [files, setFiles] = useState([]);
+    const [activeTab, setActiveTab] = useState('discover');
     const [selectedJobToApply, setSelectedJobToApply] = useState(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [results, setResults] = useState(null);
-    const fileInputRef = useRef(null);
 
     // Email Automation State
     const [jdsList, setJdsList] = useState([]);
@@ -75,25 +72,6 @@ function App() {
         }
     }, [selectedJd]);
 
-    const handleAnalyze = async () => {
-        if (files.length === 0) return alert("Please upload at least one resume.");
-        if (!jdText.trim()) return alert("Please provide a Job Description.");
-
-        setIsAnalyzing(true);
-        try {
-            const data = await apiService.processResumes(jdText, files);
-            setTimeout(() => {
-                setResults(data);
-                setIsAnalyzing(false);
-                setActiveTab('dashboard');
-            }, 1000);
-        } catch (error) {
-            console.error(error);
-            alert("Error connecting to backend? Make sure it's running.");
-            setIsAnalyzing(false);
-        }
-    };
-
     const sendSingleEmail = async (email) => {
         setCandidateStatuses(prev => ({ ...prev, [email]: 'sending' }));
         try {
@@ -137,16 +115,6 @@ function App() {
         setIsSendingEmails(false);
     };
 
-    const removeFile = (index) => {
-        setFiles(prev => prev.filter((_, i) => i !== index));
-    };
-
-    const onDrop = (e) => {
-        e.preventDefault();
-        const droppedFiles = Array.from(e.dataTransfer.files);
-        setFiles(prev => [...prev, ...droppedFiles]);
-    };
-
     const toggleCandidate = (email) => {
         if (isSendingEmails) return;
         setSelectedCandidates(prev =>
@@ -170,7 +138,7 @@ function App() {
 
     const handleRoleSelect = (role) => {
         setUserRole(role);
-        setActiveTab(role === 'employer' ? 'upload' : 'discover');
+        setActiveTab(role === 'employer' ? 'post-job' : 'discover');
     };
 
     const handleLogout = async () => {
@@ -186,6 +154,11 @@ function App() {
     const handleApplyJob = (job) => {
         setSelectedJobToApply(job);
         setActiveTab('apply');
+    };
+
+    const handleViewAnalytics = (job) => {
+        setSelectedJd(job);
+        setActiveTab('automation');
     };
 
     if (!userRole) {
@@ -221,9 +194,9 @@ function App() {
             <main className="main-content">
                 <header className="top-header">
                     <h1>
-                        {activeTab === 'upload' ? 'AI-Assisted Resume Screening' :
-                            activeTab === 'post-job' ? 'Post a New Job Opening' :
-                                activeTab === 'dashboard' ? 'Shortlisted Candidates' :
+                        {activeTab === 'post-job' ? 'Post a New Job Opening' :
+                            activeTab === 'managed-jobs' ? 'Manage Your Postings' :
+                                activeTab === 'dashboard' ? 'Job Performance & Analytics' :
                                     activeTab === 'discover' ? 'Available Opportunities' :
                                         activeTab === 'apply' ? 'Apply for Position' :
                                             activeTab === 'my-apps' ? 'My Application Status' :
@@ -236,18 +209,6 @@ function App() {
 
                 <div className="content-wrapper">
                     <AnimatePresence mode="wait">
-                        {activeTab === 'upload' && (
-                            <UploadPage
-                                jdText={jdText}
-                                setJdText={setJdText}
-                                files={files}
-                                setFiles={setFiles}
-                                onDrop={onDrop}
-                                fileInputRef={fileInputRef}
-                                removeFile={removeFile}
-                                handleAnalyze={handleAnalyze}
-                            />
-                        )}
 
                         {activeTab === 'discover' && (
                             <JobDiscoveryPage onApply={handleApplyJob} />
@@ -274,6 +235,10 @@ function App() {
                             <PostJobPage onJobPosted={handlePostJob} />
                         )}
 
+                        {activeTab === 'managed-jobs' && (
+                            <ManagedJobsPage onViewAnalytics={handleViewAnalytics} />
+                        )}
+
                         {activeTab === 'automation' && (
                             <AutomationPage
                                 jdsList={jdsList}
@@ -295,7 +260,7 @@ function App() {
                 </div>
             </main>
 
-            <ScanningOverlay isVisible={isAnalyzing} files={files} />
+            <ScanningOverlay isVisible={isAnalyzing} files={[]} />
         </div>
     );
 }

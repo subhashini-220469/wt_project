@@ -28,13 +28,6 @@ const Sidebar = ({ activeTab, setActiveTab, userRole, onLogout }) => {
                 {userRole === 'employer' ? (
                     <>
                         <button
-                            className={`nav-item ${activeTab === 'upload' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('upload')}
-                        >
-                            <Upload size={18} />
-                            <span>Resumes Screening</span>
-                        </button>
-                        <button
                             className={`nav-item ${activeTab === 'post-job' ? 'active' : ''}`}
                             onClick={() => setActiveTab('post-job')}
                         >
@@ -47,6 +40,13 @@ const Sidebar = ({ activeTab, setActiveTab, userRole, onLogout }) => {
                         >
                             <LayoutDashboard size={18} />
                             <span>Analytics</span>
+                        </button>
+                        <button
+                            className={`nav-item ${activeTab === 'managed-jobs' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('managed-jobs')}
+                        >
+                            <Briefcase size={18} />
+                            <span>Managed Jobs</span>
                         </button>
                         <button
                             className={`nav-item ${activeTab === 'automation' ? 'active' : ''}`}
