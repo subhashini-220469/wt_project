@@ -22,24 +22,12 @@ const ResumeUploadPage = () => {
         setIsUploading(true);
         setStatus('uploading');
 
-        const formData = new FormData();
-        formData.append('files', file);
-        formData.append('jd_text', "General Resume Extraction"); // Dummy JD just for extraction
-
         try {
-            // Reusing process endpoint just to get the parsed resume data
-            const res = await apiService.processResumes(formData);
-            if (res.top_candidates && res.top_candidates.length > 0) {
-                const parsedData = res.top_candidates[0].details;
-                // Note: The /process endpoint returns results in a specific format
-                // In a production app, we'd have a specific /parse-only endpoint
-
-                // Let's store the raw resume data from the backend result
-                // We'll need to fetch the full resume data if needed, but for now
-                // let's assume we save the name/skills/etc.
-                const candidateInfo = res.top_candidates[0];
-                localStorage.setItem('candidate_resume_data', JSON.stringify(candidateInfo));
-                setResumeData(candidateInfo);
+            const res = await apiService.parseResume(file);
+            // res format: { name: "...", resume_data: {...} }
+            if (res.resume_data) {
+                localStorage.setItem('candidate_resume_data', JSON.stringify(res));
+                setResumeData(res);
                 setStatus('success');
             }
         } catch (error) {

@@ -35,6 +35,7 @@ const JobDiscoveryPage = ({ onApply }) => {
         setScoringFor(jobId);
 
         try {
+            // Updated path based on new backend return structure
             const res = await apiService.checkAtsScore(jobId, candidateInfo.resume_data);
             setQuickScores(prev => ({ ...prev, [jobId]: res.total_score }));
         } catch (err) {
