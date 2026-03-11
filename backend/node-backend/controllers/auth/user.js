@@ -19,7 +19,9 @@ export const signup = async (req, res) => {
 
     } catch (e) {
         if (e.name === "ZodError") {
-            return res.status(400).json({ errors: e.errors })
+            // Return the first validation error as a clear, specific message
+            const firstError = e.issues[0];
+            return res.status(400).json({ error: firstError.message })
         }
         res.status(500).json({ error: "Server error" })
     }

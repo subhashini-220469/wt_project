@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, User, Building, ArrowRight, Briefcase, UserCheck } from 'lucide-react';
+import { Mail, Lock, User, Building, ArrowRight, Briefcase, UserCheck, CheckCircle, Shield, Zap, Users, BarChart3, Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { GoogleLogin } from "@react-oauth/google";
 import axios from "axios";
@@ -20,6 +20,7 @@ const AuthPage = ({ onLoginSuccess }) => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
   const [googleLoading, setGoogleLoading] = useState(false);
 
   // State for first-time Google users who need to pick a role
@@ -143,7 +144,10 @@ const AuthPage = ({ onLoginSuccess }) => {
       });
       const data = await res.json();
 
-      if (!res.ok) throw new Error(data.error || data.errors?.[0]?.message || 'Authentication failed');
+      if (!res.ok) {
+        // Show the specific error from the backend (e.g. "Password must contain at least one uppercase letter")
+        throw new Error(data.error || 'Something went wrong. Please try again.');
+      }
 
       if (isLogin) {
         localStorage.setItem('accessToken', data.accessToken);
@@ -153,7 +157,8 @@ const AuthPage = ({ onLoginSuccess }) => {
         navigate('/');
       } else {
         setIsLogin(true);
-        alert("Account created successfully! Please sign in.");
+        setSuccessMessage('Account created successfully! Please sign in.');
+        setError(null);
       }
     } catch (err) {
       setError(err.message);
@@ -165,6 +170,7 @@ const AuthPage = ({ onLoginSuccess }) => {
   const toggleMode = () => {
     setIsLogin(!isLogin);
     setError(null);
+    setSuccessMessage(null);
   };
 
   // ── Role Selection Screen (first-time Google users) ──────────────────────
@@ -262,7 +268,7 @@ const AuthPage = ({ onLoginSuccess }) => {
   return (
     <div className="auth-container">
       <div className="auth-split">
-        {/* Left Side - Visuals */}
+        {/* Left Side - Professional Visuals */}
         <div className="auth-visuals">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -274,39 +280,57 @@ const AuthPage = ({ onLoginSuccess }) => {
               <span className="badge-dot"></span>
               AI-Powered ATS
             </div>
-            <h1>{isLogin ? 'Find the Perfect Candidate, Faster.' : 'Automate Your Recruitment'}</h1>
-            <p>Our intelligent system uses advanced AI to score resumes against job descriptions and automate candidate outreach via email.</p>
-            <div className="glass-card mockup-card">
-              <div className="mockup-header">
-                <div className="dots"><span></span><span></span><span></span></div>
-                <div className="mockup-title">Candidate Screening</div>
+            <h1>{isLogin ? 'Welcome Back to HireAI Pro' : 'Start Hiring Smarter'}</h1>
+            <p>{isLogin
+              ? 'Your AI recruitment dashboard is ready. Sign in to continue managing candidates and jobs.'
+              : 'Join thousands of companies using AI to find top talent faster than ever.'
+            }</p>
+
+            {/* Stats Row */}
+            <div className="auth-stats-row">
+              <div className="auth-stat">
+                <span className="auth-stat__number">10K+</span>
+                <span className="auth-stat__label">Resumes Screened</span>
               </div>
-              <div className="mockup-body">
-                <div className="mockup-candidate">
-                  <div className="candidate-avatar"></div>
-                  <div className="candidate-info">
-                    <div className="mockup-line w-1-2"></div>
-                    <div className="mockup-line w-3-4"></div>
-                  </div>
-                  <div className="match-score">92% Match</div>
-                </div>
-                <div className="mockup-candidate">
-                  <div className="candidate-avatar"></div>
-                  <div className="candidate-info">
-                    <div className="mockup-line w-1-2"></div>
-                    <div className="mockup-line w-3-4"></div>
-                  </div>
-                  <div className="match-score match-good">85% Match</div>
-                </div>
-                <div className="mockup-candidate">
-                  <div className="candidate-avatar"></div>
-                  <div className="candidate-info">
-                    <div className="mockup-line w-1-2"></div>
-                    <div className="mockup-line w-5-6"></div>
-                  </div>
-                  <div className="match-score match-avg">71% Match</div>
-                </div>
+              <div className="auth-stat">
+                <span className="auth-stat__number">95%</span>
+                <span className="auth-stat__label">Match Accuracy</span>
               </div>
+              <div className="auth-stat">
+                <span className="auth-stat__number">3x</span>
+                <span className="auth-stat__label">Faster Hiring</span>
+              </div>
+            </div>
+
+            {/* Feature List */}
+            <div className="auth-features">
+              <motion.div className="auth-feature" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
+                <div className="auth-feature__icon"><Zap size={18} /></div>
+                <div>
+                  <div className="auth-feature__title">AI-Powered Screening</div>
+                  <div className="auth-feature__desc">Instantly score resumes against job descriptions</div>
+                </div>
+              </motion.div>
+              <motion.div className="auth-feature" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }}>
+                <div className="auth-feature__icon"><BarChart3 size={18} /></div>
+                <div>
+                  <div className="auth-feature__title">Smart Analytics</div>
+                  <div className="auth-feature__desc">Track hiring metrics and candidate pipelines</div>
+                </div>
+              </motion.div>
+              <motion.div className="auth-feature" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.7 }}>
+                <div className="auth-feature__icon"><Users size={18} /></div>
+                <div>
+                  <div className="auth-feature__title">Automated Outreach</div>
+                  <div className="auth-feature__desc">Email top candidates automatically</div>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Trust Badge */}
+            <div className="auth-trust">
+              <Shield size={14} />
+              <span>Enterprise-grade security  •  SOC 2 Compliant  •  GDPR Ready</span>
             </div>
           </motion.div>
         </div>
@@ -318,6 +342,13 @@ const AuthPage = ({ onLoginSuccess }) => {
               <h2>{isLogin ? 'Sign In' : 'Create Account'}</h2>
               <p>{isLogin ? 'Please enter your credentials to continue.' : 'Fill in your details to get started.'}</p>
             </div>
+
+            {successMessage && (
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="success-banner">
+                <CheckCircle size={18} />
+                {successMessage}
+              </motion.div>
+            )}
 
             {error && (
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="error-banner">

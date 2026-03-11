@@ -264,63 +264,63 @@ function App() {
                 <div className="content-wrapper">
                     <AnimatePresence mode="wait">
 
-                    <Routes>
-                        {/* Employer Routes */}
-                        {userRole === 'employer' && (
-                            <>
-                                <Route path="/post-job" element={<PostJobPage onJobPosted={handlePostJob} />} />
-                                <Route path="/managed-jobs" element={<ManagedJobsPage onViewAnalytics={handleViewAnalytics} />} />
-                                <Route path="/analytics" element={<DashboardPage results={results} />} />
-                                <Route path="/outreach" element={
-                                    <AutomationPage
-                                        jdsList={jdsList}
-                                        selectedJd={selectedJd}
-                                        setSelectedJd={setSelectedJd}
-                                        candidatesForJd={candidatesForJd}
-                                        selectedCandidates={selectedCandidates}
-                                        toggleCandidate={toggleCandidate}
-                                        candidateStatuses={candidateStatuses}
-                                        isSendingEmails={isSendingEmails}
-                                        handleSendBroadcast={handleSendBroadcast}
-                                        handleRetry={handleRetry}
-                                        setShowEditModal={setShowEditModal}
-                                        allFinished={allFinished}
-                                        formatDate={formatDate}
-                                    />
-                                } />
-                                <Route path="/" element={<Navigate to="/post-job" replace />} />
-                            </>
-                        )}
-
-                        {/* Employee Routes */}
-                        {userRole === 'employee' && (
-                            <>
-                                <Route path="/discover" element={<JobDiscoveryPage onApply={handleApplyJob} />} />
-                                <Route path="/resume" element={<ResumeUploadPage />} />
-                                <Route path="/my-apps" element={<ManagedJobsPage />} /> {/* Assuming employee has their apps page */}
-                                <Route path="/apply" element={
-                                    selectedJobToApply ? (
-                                        <CandidateApplyPage
-                                            job={selectedJobToApply}
-                                            onBack={() => {
-                                                setSelectedJobToApply(null);
-                                                navigate('/discover');
-                                            }}
+                        <Routes>
+                            {/* Employer Routes */}
+                            {userRole === 'employer' && (
+                                <>
+                                    <Route path="/post-job" element={<PostJobPage onJobPosted={handlePostJob} />} />
+                                    <Route path="/managed-jobs" element={<ManagedJobsPage onViewAnalytics={handleViewAnalytics} />} />
+                                    <Route path="/analytics" element={<DashboardPage results={results} />} />
+                                    <Route path="/outreach" element={
+                                        <AutomationPage
+                                            jdsList={jdsList}
+                                            selectedJd={selectedJd}
+                                            setSelectedJd={setSelectedJd}
+                                            candidatesForJd={candidatesForJd}
+                                            selectedCandidates={selectedCandidates}
+                                            toggleCandidate={toggleCandidate}
+                                            candidateStatuses={candidateStatuses}
+                                            isSendingEmails={isSendingEmails}
+                                            handleSendBroadcast={handleSendBroadcast}
+                                            handleRetry={handleRetry}
+                                            setShowEditModal={setShowEditModal}
+                                            allFinished={allFinished}
+                                            formatDate={formatDate}
                                         />
-                                    ) : (
-                                        <Navigate to="/discover" replace />
-                                    )
-                                } />
-                                <Route path="/" element={<Navigate to="/discover" replace />} />
-                            </>
-                        )}
+                                    } />
+                                    <Route path="/" element={<Navigate to="/post-job" replace />} />
+                                </>
+                            )}
 
-                        {/* Shared Routes */}
-                        <Route path="/profile" element={<ProfilePage />} />
+                            {/* Employee Routes */}
+                            {userRole === 'employee' && (
+                                <>
+                                    <Route path="/discover" element={<JobDiscoveryPage onApply={handleApplyJob} />} />
+                                    <Route path="/resume" element={<ResumeUploadPage />} />
+                                    <Route path="/my-apps" element={<ManagedJobsPage />} /> {/* Assuming employee has their apps page */}
+                                    <Route path="/apply" element={
+                                        selectedJobToApply ? (
+                                            <CandidateApplyPage
+                                                job={selectedJobToApply}
+                                                onBack={() => {
+                                                    setSelectedJobToApply(null);
+                                                    navigate('/discover');
+                                                }}
+                                            />
+                                        ) : (
+                                            <Navigate to="/discover" replace />
+                                        )
+                                    } />
+                                    <Route path="/" element={<Navigate to="/discover" replace />} />
+                                </>
+                            )}
 
-                        {/* Redirect any other unknown routes to default */}
-                        <Route path="*" element={<Navigate to={userRole === 'employer' ? "/post-job" : "/discover"} replace />} />
-                    </Routes>
+                            {/* Shared Routes */}
+                            <Route path="/profile" element={<ProfilePage />} />
+
+                            {/* Redirect any other unknown routes to default */}
+                            <Route path="*" element={<Navigate to={userRole === 'employer' ? "/post-job" : "/discover"} replace />} />
+                        </Routes>
                     </AnimatePresence>
                 </div>
             </main>
