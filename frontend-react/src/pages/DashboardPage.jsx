@@ -14,58 +14,6 @@ import {
 } from 'lucide-react';
 import { apiService } from '../services/api';
 
-const DashboardPage = ({ results }) => {
-    const handleExportCSV = () => {
-    let csvRows = [];
-
-    // CSV headers
-    csvRows.push(["Rank", "Candidate Name", "Match Score"]);
-
-    // Check if candidates exist
-    if (results?.top_candidates && results.top_candidates.length > 0) {
-        results.top_candidates.forEach((candidate, idx) => {
-            csvRows.push([
-                idx + 1,
-                candidate.name || "N/A",
-                `${candidate.score || 0}%`
-            ]);
-        });
-    } else {
-        // If no records
-        csvRows.push(["No Records Found", "", ""]);
-    }
-
-    // Convert to CSV string
-    const csvContent =
-        "data:text/csv;charset=utf-8," +
-        csvRows.map(row => row.join(",")).join("\n");
-
-    const encodedUri = encodeURI(csvContent);
-
-    // Create download link
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "candidate_results.csv");
-    document.body.appendChild(link);
-
-    link.click();
-    };
-    return (
-        <motion.section
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="view-section active-section"
-        >
-            <div className="dashboard-header">
-                <div>
-                    <h2>Match Results</h2>
-                    <p>AI Ranking for: <span className="text-primary font-bold">{results?.job_title || "Processed JD"}</span></p>
-                </div>
-                <button className="btn btn-success" id="export-btn" onClick={handleExportCSV}>
-                    <FileDown size={18} />
-                    Export CSV
-                </button>
 const DashboardPage = () => {
     const [stats, setStats] = useState([]);
     const [loading, setLoading] = useState(true);

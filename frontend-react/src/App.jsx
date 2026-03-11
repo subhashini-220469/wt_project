@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
-
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 // Components
 import Sidebar from './components/Sidebar';
 import ScanningOverlay from './components/ScanningOverlay';
@@ -15,14 +15,32 @@ import HomePage from './pages/HomePage';
 import JobDiscoveryPage from './pages/JobDiscoveryPage';
 import CandidateApplyPage from './pages/CandidateApplyPage';
 import ResumeUploadPage from './pages/ResumeUploadPage';
+import AuthPage from './pages/AuthPage';
+import ProfilePage from './pages/ProfilePage';
 
 // Services
 import { apiService } from './services/api';
+import authClient from './services/authClient';
 
 function App() {
-    const [darkMode,setDarkMode] = useState(null);
     const [userRole, setUserRole] = useState(null); // 'employer' or 'employee'
-    const [activeTab, setActiveTab] = useState('discover');
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    // Derive activeTab from URL
+    const tabMapping = {
+        '/post-job': 'post-job',
+        '/analytics': 'dashboard',
+        '/managed-jobs': 'managed-jobs',
+        '/outreach': 'automation',
+        '/discover': 'discover',
+        '/resume': 'resume',
+        '/my-apps': 'my-apps',
+        '/apply': 'apply',
+        '/profile': 'profile'
+    };
+    const activeTab = tabMapping[location.pathname] || (userRole === 'employer' ? 'post-job' : 'discover');
+
     const [selectedJobToApply, setSelectedJobToApply] = useState(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [results, setResults] = useState(null);
@@ -38,14 +56,6 @@ function App() {
     const [showEditModal, setShowEditModal] = useState(false);
     const [candidateStatuses, setCandidateStatuses] = useState({});
     const [allFinished, setAllFinished] = useState(false);
-    //toggle button
-    useEffect(() => {
-    if (darkMode) {
-        document.body.classList.add("dark-mode");
-    } else {
-        document.body.classList.remove("dark-mode");
-    }
-    }, [darkMode]);
 
     // Fetch JDs for Automation Tab
     useEffect(() => {
@@ -78,6 +88,44 @@ function App() {
                 .catch(err => console.error("Failed to fetch results", err));
         }
     }, [selectedJd]);
+
+    // Update document title dynamically based on active tab
+    useEffect(() => {
+        const titles = {
+            'upload': 'Resume Screening | HireAI Pro',
+            'post-job': 'Post a Job | HireAI Pro',
+            'dashboard': 'Analytics | HireAI Pro',
+            'automation': 'Outreach | HireAI Pro',
+            'discover': 'Browse Jobs | HireAI Pro',
+            'resume': 'My Resume | HireAI Pro',
+            'my-apps': 'My Applications | HireAI Pro',
+            'apply': 'Apply for Job | HireAI Pro',
+            'profile': 'My Profile | HireAI Pro'
+        };
+
+        const pageTitle = titles[activeTab] || 'HireAI Pro';
+        document.title = pageTitle;
+    }, [activeTab]);
+
+
+    const handleAnalyze = async () => {
+        if (files.length === 0) return alert("Please upload at least one resume.");
+        if (!jdText.trim()) return alert("Please provide a Job Description.");
+
+        setIsAnalyzing(true);
+        try {
+            const data = await apiService.processResumes(jdText, files);
+            setTimeout(() => {
+                setResults(data);
+                setIsAnalyzing(false);
+                navigate('/analytics');
+            }, 1000);
+        } catch (error) {
+            console.error(error);
+            alert("Error connecting to backend? Make sure it's running.");
+            setIsAnalyzing(false);
+        }
+    };
 
     const sendSingleEmail = async (email) => {
         setCandidateStatuses(prev => ({ ...prev, [email]: 'sending' }));
@@ -145,25 +193,39 @@ function App() {
 
     const handleRoleSelect = (role) => {
         setUserRole(role);
-        setActiveTab(role === 'employer' ? 'post-job' : 'discover');
+        navigate(role === 'employer' ? '/post-job' : '/discover');
     };
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        try {
+            await authClient.post('/api/auth/logout');
+        } catch {
+            // ignore — still clear local state
+        }
+        localStorage.removeItem('accessToken');
         setUserRole(null);
     };
 
     const handleApplyJob = (job) => {
         setSelectedJobToApply(job);
-        setActiveTab('apply');
+        navigate('/apply');
     };
 
     const handleViewAnalytics = (job) => {
         setSelectedJd(job);
-        setActiveTab('automation');
+        navigate('/outreach');
     };
 
     if (!userRole) {
-        return <HomePage onRoleSelect={handleRoleSelect} />;
+        return (
+            <Routes>
+                <Route path="/auth" element={
+                    <AuthPage onLoginSuccess={(role) => handleRoleSelect(role === 'hr' ? 'employer' : 'employee')} />
+                } />
+                {/* Make auth the default for now when unauthorized */}
+                <Route path="*" element={<Navigate to="/auth" replace />} />
+            </Routes>
+        );
     }
 
     return (
@@ -178,8 +240,6 @@ function App() {
             />
 
             <Sidebar
-                activeTab={activeTab}
-                setActiveTab={setActiveTab}
                 userRole={userRole}
                 onLogout={handleLogout}
             />
@@ -193,75 +253,74 @@ function App() {
                                     activeTab === 'discover' ? 'Available Opportunities' :
                                         activeTab === 'apply' ? 'Apply for Position' :
                                             activeTab === 'my-apps' ? 'My Application Status' :
-                                                'Email Automation'}
+                                                activeTab === 'profile' ? 'My Profile' :
+                                                    'Email Automation'}
                     </h1>
                     <div className="user-profile">
-
-                        <button
-                            className="theme-toggle"
-                            onClick={() => setDarkMode(!darkMode)}
-                        >
-                            {darkMode ? "◑" : "◐"}
-                        </button>
-
-                        <img
-                            src={`https://ui-avatars.com/api/?name=HR+Admin&background=6366f1&color=fff`}
-                            alt="Profile"
-                        />
-
+                        <img src={`https://ui-avatars.com/api/?name=HR+Admin&background=6366f1&color=fff`} alt="Profile" />
                     </div>
-                    
                 </header>
 
                 <div className="content-wrapper">
                     <AnimatePresence mode="wait">
 
-                        {activeTab === 'discover' && (
-                            <JobDiscoveryPage onApply={handleApplyJob} />
-                        )}
+                        <Routes>
+                            {/* Employer Routes */}
+                            {userRole === 'employer' && (
+                                <>
+                                    <Route path="/post-job" element={<PostJobPage onJobPosted={handlePostJob} />} />
+                                    <Route path="/managed-jobs" element={<ManagedJobsPage onViewAnalytics={handleViewAnalytics} />} />
+                                    <Route path="/analytics" element={<DashboardPage results={results} />} />
+                                    <Route path="/outreach" element={
+                                        <AutomationPage
+                                            jdsList={jdsList}
+                                            selectedJd={selectedJd}
+                                            setSelectedJd={setSelectedJd}
+                                            candidatesForJd={candidatesForJd}
+                                            selectedCandidates={selectedCandidates}
+                                            toggleCandidate={toggleCandidate}
+                                            candidateStatuses={candidateStatuses}
+                                            isSendingEmails={isSendingEmails}
+                                            handleSendBroadcast={handleSendBroadcast}
+                                            handleRetry={handleRetry}
+                                            setShowEditModal={setShowEditModal}
+                                            allFinished={allFinished}
+                                            formatDate={formatDate}
+                                        />
+                                    } />
+                                    <Route path="/" element={<Navigate to="/post-job" replace />} />
+                                </>
+                            )}
 
-                        {activeTab === 'resume' && (
-                            <ResumeUploadPage />
-                        )}
+                            {/* Employee Routes */}
+                            {userRole === 'employee' && (
+                                <>
+                                    <Route path="/discover" element={<JobDiscoveryPage onApply={handleApplyJob} />} />
+                                    <Route path="/resume" element={<ResumeUploadPage />} />
+                                    <Route path="/my-apps" element={<ManagedJobsPage />} /> {/* Assuming employee has their apps page */}
+                                    <Route path="/apply" element={
+                                        selectedJobToApply ? (
+                                            <CandidateApplyPage
+                                                job={selectedJobToApply}
+                                                onBack={() => {
+                                                    setSelectedJobToApply(null);
+                                                    navigate('/discover');
+                                                }}
+                                            />
+                                        ) : (
+                                            <Navigate to="/discover" replace />
+                                        )
+                                    } />
+                                    <Route path="/" element={<Navigate to="/discover" replace />} />
+                                </>
+                            )}
 
-                        {activeTab === 'apply' && selectedJobToApply && (
-                            <CandidateApplyPage
-                                job={selectedJobToApply}
-                                onBack={() => {
-                                    setSelectedJobToApply(null);
-                                    setActiveTab('discover');
-                                }}
-                            />
-                        )}
-                        {activeTab === 'dashboard' && (
-                            <DashboardPage results={results} />
-                        )}
+                            {/* Shared Routes */}
+                            <Route path="/profile" element={<ProfilePage />} />
 
-                        {activeTab === 'post-job' && (
-                            <PostJobPage onJobPosted={handlePostJob} />
-                        )}
-
-                        {activeTab === 'managed-jobs' && (
-                            <ManagedJobsPage onViewAnalytics={handleViewAnalytics} />
-                        )}
-
-                        {activeTab === 'automation' && (
-                            <AutomationPage
-                                jdsList={jdsList}
-                                selectedJd={selectedJd}
-                                setSelectedJd={setSelectedJd}
-                                candidatesForJd={candidatesForJd}
-                                selectedCandidates={selectedCandidates}
-                                toggleCandidate={toggleCandidate}
-                                candidateStatuses={candidateStatuses}
-                                isSendingEmails={isSendingEmails}
-                                handleSendBroadcast={handleSendBroadcast}
-                                handleRetry={handleRetry}
-                                setShowEditModal={setShowEditModal}
-                                allFinished={allFinished}
-                                formatDate={formatDate}
-                            />
-                        )}
+                            {/* Redirect any other unknown routes to default */}
+                            <Route path="*" element={<Navigate to={userRole === 'employer' ? "/post-job" : "/discover"} replace />} />
+                        </Routes>
                     </AnimatePresence>
                 </div>
             </main>
@@ -271,4 +330,12 @@ function App() {
     );
 }
 
-export default App;
+export default function AppWrapper() {
+    return (
+        <Router>
+            <Routes>
+                <Route path="/*" element={<App />} />
+            </Routes>
+        </Router>
+    )
+}
