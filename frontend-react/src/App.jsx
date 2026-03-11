@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 // Components
 import Sidebar from './components/Sidebar';
 import ScanningOverlay from './components/ScanningOverlay';
@@ -24,7 +24,23 @@ import authClient from './services/authClient';
 
 function App() {
     const [userRole, setUserRole] = useState(null); // 'employer' or 'employee'
-    const [activeTab, setActiveTab] = useState('discover');
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    // Derive activeTab from URL
+    const tabMapping = {
+        '/post-job': 'post-job',
+        '/analytics': 'dashboard',
+        '/managed-jobs': 'managed-jobs',
+        '/outreach': 'automation',
+        '/discover': 'discover',
+        '/resume': 'resume',
+        '/my-apps': 'my-apps',
+        '/apply': 'apply',
+        '/profile': 'profile'
+    };
+    const activeTab = tabMapping[location.pathname] || (userRole === 'employer' ? 'post-job' : 'discover');
+
     const [selectedJobToApply, setSelectedJobToApply] = useState(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [results, setResults] = useState(null);
@@ -102,7 +118,7 @@ function App() {
             setTimeout(() => {
                 setResults(data);
                 setIsAnalyzing(false);
-                setActiveTab('dashboard');
+                navigate('/analytics');
             }, 1000);
         } catch (error) {
             console.error(error);
@@ -177,7 +193,7 @@ function App() {
 
     const handleRoleSelect = (role) => {
         setUserRole(role);
-        setActiveTab(role === 'employer' ? 'post-job' : 'discover');
+        navigate(role === 'employer' ? '/post-job' : '/discover');
     };
 
     const handleLogout = async () => {
@@ -192,12 +208,12 @@ function App() {
 
     const handleApplyJob = (job) => {
         setSelectedJobToApply(job);
-        setActiveTab('apply');
+        navigate('/apply');
     };
 
     const handleViewAnalytics = (job) => {
         setSelectedJd(job);
-        setActiveTab('automation');
+        navigate('/outreach');
     };
 
     if (!userRole) {
@@ -224,8 +240,6 @@ function App() {
             />
 
             <Sidebar
-                activeTab={activeTab}
-                setActiveTab={setActiveTab}
                 userRole={userRole}
                 onLogout={handleLogout}
             />
@@ -239,7 +253,8 @@ function App() {
                                     activeTab === 'discover' ? 'Available Opportunities' :
                                         activeTab === 'apply' ? 'Apply for Position' :
                                             activeTab === 'my-apps' ? 'My Application Status' :
-                                                'Email Automation'}
+                                                activeTab === 'profile' ? 'My Profile' :
+                                                    'Email Automation'}
                     </h1>
                     <div className="user-profile">
                         <img src={`https://ui-avatars.com/api/?name=HR+Admin&background=6366f1&color=fff`} alt="Profile" />
@@ -249,18 +264,14 @@ function App() {
                 <div className="content-wrapper">
                     <AnimatePresence mode="wait">
 
+                    <Routes>
+                        {/* Employer Routes */}
                         {userRole === 'employer' && (
                             <>
-                                {activeTab === 'post-job' && (
-                                    <PostJobPage onJobPosted={handlePostJob} />
-                                )}
-                                {activeTab === 'managed-jobs' && (
-                                    <ManagedJobsPage onViewAnalytics={handleViewAnalytics} />
-                                )}
-                                {activeTab === 'dashboard' && (
-                                    <DashboardPage results={results} />
-                                )}
-                                {activeTab === 'automation' && (
+                                <Route path="/post-job" element={<PostJobPage onJobPosted={handlePostJob} />} />
+                                <Route path="/managed-jobs" element={<ManagedJobsPage onViewAnalytics={handleViewAnalytics} />} />
+                                <Route path="/analytics" element={<DashboardPage results={results} />} />
+                                <Route path="/outreach" element={
                                     <AutomationPage
                                         jdsList={jdsList}
                                         selectedJd={selectedJd}
@@ -276,33 +287,40 @@ function App() {
                                         allFinished={allFinished}
                                         formatDate={formatDate}
                                     />
-                                )}
+                                } />
+                                <Route path="/" element={<Navigate to="/post-job" replace />} />
                             </>
                         )}
 
+                        {/* Employee Routes */}
                         {userRole === 'employee' && (
                             <>
-                                {activeTab === 'discover' && (
-                                    <JobDiscoveryPage onApply={handleApplyJob} />
-                                )}
-                                {activeTab === 'resume' && (
-                                    <ResumeUploadPage />
-                                )}
-                                {activeTab === 'apply' && selectedJobToApply && (
-                                    <CandidateApplyPage
-                                        job={selectedJobToApply}
-                                        onBack={() => {
-                                            setSelectedJobToApply(null);
-                                            setActiveTab('discover');
-                                        }}
-                                    />
-                                )}
+                                <Route path="/discover" element={<JobDiscoveryPage onApply={handleApplyJob} />} />
+                                <Route path="/resume" element={<ResumeUploadPage />} />
+                                <Route path="/my-apps" element={<ManagedJobsPage />} /> {/* Assuming employee has their apps page */}
+                                <Route path="/apply" element={
+                                    selectedJobToApply ? (
+                                        <CandidateApplyPage
+                                            job={selectedJobToApply}
+                                            onBack={() => {
+                                                setSelectedJobToApply(null);
+                                                navigate('/discover');
+                                            }}
+                                        />
+                                    ) : (
+                                        <Navigate to="/discover" replace />
+                                    )
+                                } />
+                                <Route path="/" element={<Navigate to="/discover" replace />} />
                             </>
                         )}
 
-                        {activeTab === 'profile' && (
-                            <ProfilePage />
-                        )}
+                        {/* Shared Routes */}
+                        <Route path="/profile" element={<ProfilePage />} />
+
+                        {/* Redirect any other unknown routes to default */}
+                        <Route path="*" element={<Navigate to={userRole === 'employer' ? "/post-job" : "/discover"} replace />} />
+                    </Routes>
                     </AnimatePresence>
                 </div>
             </main>
