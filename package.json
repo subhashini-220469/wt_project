@@ -1,0 +1,25 @@
+{
+  "name": "wt_project-root",
+  "version": "1.0.0",
+  "description": "Root configuration to run multiple servers",
+  "scripts": {
+    "dev": "concurrently -c \"cyan.bold,magenta.bold,green.bold\" -n \"PYTHON,NODE,REACT\" \"npm run dev:python\" \"npm run dev:node\" \"npm run dev:frontend\"",
+    "dev:python": "cd backend && ./venv/bin/python main.py",
+    "dev:node": "cd backend/node-backend && npm run dev",
+    "dev:frontend": "cd frontend-react && npm run dev"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "google-auth-library": "^10.6.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.3.0",
+    "zod": "^4.3.6"
+  }
+}
