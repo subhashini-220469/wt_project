@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Upload, FileText, CheckCircle2, BrainCircuit, Trash2, AlertCircle } from 'lucide-react';
 import { apiService } from '../services/api';
+import { getResumeData, saveResumeData, clearResumeData } from '../utils/resumeStorage';
 
 const ResumeUploadPage = () => {
     const [resumeData, setResumeData] = useState(null);
@@ -9,9 +10,9 @@ const ResumeUploadPage = () => {
     const [status, setStatus] = useState('idle'); // idle, uploading, success, error
 
     useEffect(() => {
-        const saved = localStorage.getItem('candidate_resume_data');
+        const saved = getResumeData();
         if (saved) {
-            setResumeData(JSON.parse(saved));
+            setResumeData(saved);
         }
     }, []);
 
@@ -26,7 +27,7 @@ const ResumeUploadPage = () => {
             const res = await apiService.parseResume(file);
             // res format: { name: "...", resume_data: {...} }
             if (res.resume_data) {
-                localStorage.setItem('candidate_resume_data', JSON.stringify(res));
+                saveResumeData(res);
                 setResumeData(res);
                 setStatus('success');
             }
@@ -39,7 +40,7 @@ const ResumeUploadPage = () => {
     };
 
     const clearResume = () => {
-        localStorage.removeItem('candidate_resume_data');
+        clearResumeData();
         setResumeData(null);
         setStatus('idle');
     };

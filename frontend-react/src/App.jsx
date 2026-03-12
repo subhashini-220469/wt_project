@@ -21,6 +21,7 @@ import ProfilePage from './pages/ProfilePage';
 // Services
 import { apiService } from './services/api';
 import authClient from './services/authClient';
+import { clearResumeData } from './utils/resumeStorage';
 
 function App() {
     const [userRole, setUserRole] = useState(null); // 'employer' or 'employee'
@@ -202,6 +203,7 @@ function App() {
         } catch {
             // ignore — still clear local state
         }
+        clearResumeData();
         localStorage.removeItem('accessToken');
         setUserRole(null);
     };

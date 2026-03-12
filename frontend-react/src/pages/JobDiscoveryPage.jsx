@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Search, MapPin, Clock, DollarSign, Briefcase, ChevronRight, Filter, BrainCircuit } from 'lucide-react';
 import { apiService } from '../services/api';
+import { getResumeData } from '../utils/resumeStorage';
 
 const JobDiscoveryPage = ({ onApply }) => {
     const [jobs, setJobs] = useState([]);
@@ -25,13 +26,12 @@ const JobDiscoveryPage = ({ onApply }) => {
     }, []);
 
     const handleQuickScore = async (jobId) => {
-        const saved = localStorage.getItem('candidate_resume_data');
-        if (!saved) {
+        const candidateInfo = getResumeData();
+        if (!candidateInfo) {
             alert("Please upload your Master Resume first in the 'My Resume' tab to use this feature.");
             return;
         }
 
-        const candidateInfo = JSON.parse(saved);
         setScoringFor(jobId);
 
         try {

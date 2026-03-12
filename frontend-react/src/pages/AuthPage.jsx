@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, User, Building, ArrowRight, Briefcase, UserCheck, CheckCircle, Shield, Zap, Users, BarChart3, Star } from 'lucide-react';
+import { Mail, Lock, User, Building, ArrowRight, Briefcase, UserCheck, CheckCircle, Shield, Zap, Users, BarChart3, Star, Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { GoogleLogin } from "@react-oauth/google";
 import axios from "axios";
@@ -22,6 +22,7 @@ const AuthPage = ({ onLoginSuccess }) => {
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // State for first-time Google users who need to pick a role
   const [pendingGoogleUser, setPendingGoogleUser] = useState(null); // { accessToken }
@@ -440,13 +441,22 @@ const AuthPage = ({ onLoginSuccess }) => {
               <div className="input-group">
                 <Lock className="input-icon" size={18} />
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   name="password"
                   placeholder="Password"
                   required
                   value={formData.password}
                   onChange={handleInputChange}
                 />
+                <button
+                  type="button"
+                  className="password-toggle-btn"
+                  onClick={() => setShowPassword(!showPassword)}
+                  tabIndex={-1}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
 
 
