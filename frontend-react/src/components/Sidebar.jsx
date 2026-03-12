@@ -1,5 +1,5 @@
-import { NavLink } from 'react-router-dom';
 import {
+    Upload,
     LayoutDashboard,
     Mail,
     Wand2,
@@ -11,7 +11,7 @@ import {
     FileText
 } from 'lucide-react';
 
-const Sidebar = ({ userRole, onLogout }) => {
+const Sidebar = ({ activeTab, setActiveTab, userRole, onLogout }) => {
     return (
         <aside className="sidebar">
             <div className="logo">
@@ -27,69 +27,69 @@ const Sidebar = ({ userRole, onLogout }) => {
             <nav className="nav-menu">
                 {userRole === 'employer' ? (
                     <>
-                        <NavLink
-                            to="/post-job"
-                            className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                        <button
+                            className={`nav-item ${activeTab === 'post-job' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('post-job')}
                         >
                             <Plus size={18} />
                             <span>Post New Job</span>
-                        </NavLink>
-                        <NavLink
-                            to="/analytics"
-                            className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                        </button>
+                        <button
+                            className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('dashboard')}
                         >
                             <LayoutDashboard size={18} />
                             <span>Analytics</span>
-                        </NavLink>
-                        <NavLink
-                            to="/managed-jobs"
-                            className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                        </button>
+                        <button
+                            className={`nav-item ${activeTab === 'managed-jobs' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('managed-jobs')}
                         >
                             <Briefcase size={18} />
                             <span>Managed Jobs</span>
-                        </NavLink>
-                        <NavLink
-                            to="/outreach"
-                            className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                        </button>
+                        <button
+                            className={`nav-item ${activeTab === 'automation' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('automation')}
                         >
                             <Mail size={18} />
                             <span>Outreach</span>
-                        </NavLink>
+                        </button>
                     </>
                 ) : (
                     <>
-                        <NavLink
-                            to="/discover"
-                            className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                        <button
+                            className={`nav-item ${activeTab === 'discover' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('discover')}
                         >
                             <Search size={18} />
                             <span>Browse Jobs</span>
-                        </NavLink>
-                        <NavLink
-                            to="/resume"
-                            className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                        </button>
+                        <button
+                            className={`nav-item ${activeTab === 'resume' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('resume')}
                         >
                             <FileText size={18} />
                             <span>My Resume</span>
-                        </NavLink>
-                        <NavLink
-                            to="/my-apps"
-                            className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                        </button>
+                        <button
+                            className={`nav-item ${activeTab === 'my-apps' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('my-apps')}
                         >
                             <Briefcase size={18} />
                             <span>My Applications</span>
-                        </NavLink>
+                        </button>
                     </>
                 )}
 
                 <div className="nav-bottom">
-                    <NavLink
-                        to="/profile"
-                        className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                    <button
+                        className={`nav-item ${activeTab === 'profile' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('profile')}
                     >
                         <UserCircle size={18} />
                         <span>My Profile</span>
-                    </NavLink>
+                    </button>
                     <button className="nav-item logout-btn-sidebar" onClick={onLogout}>
                         <LogOut size={18} />
                         <span>Logout</span>

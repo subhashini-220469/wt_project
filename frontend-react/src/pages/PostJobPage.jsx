@@ -106,164 +106,122 @@ const PostJobPage = ({ onJobPosted }) => {
     };
 
     const renderStep1 = () => (
-        <div className="form-step active-step">
-            <div className="step-header-block">
-                <Briefcase size={28} className="text-primary" />
-                <div className="step-title-text">
-                    <h2>Job Overview</h2>
-                    <p>Provide the foundational details of the position.</p>
+        <div className="form-step">
+            <div className="card-header">
+                <Briefcase size={20} className="text-accent" />
+                <h2>Basic Job Information</h2>
+            </div>
+            <div className="form-grid">
+                <div className="input-group">
+                    <label>Job Title*</label>
+                    <input
+                        type="text"
+                        name="job_title"
+                        value={formData.job_title}
+                        onChange={handleInputChange}
+                        placeholder="e.g. Senior Backend Engineer"
+                        required
+                    />
+                </div>
+                <div className="input-group">
+                    <label>Company Name*</label>
+                    <input
+                        type="text"
+                        name="company"
+                        value={formData.company}
+                        onChange={handleInputChange}
+                        placeholder="Hiring Company"
+                        required
+                    />
+                </div>
+                <div className="input-group">
+                    <label>Workplace Type*</label>
+                    <select name="workplace_type" value={formData.workplace_type} onChange={handleInputChange}>
+                        <option>In Office</option>
+                        <option>Hybrid</option>
+                        <option>Remote</option>
+                    </select>
+                </div>
+                <div className="input-group">
+                    <label>Job Location*</label>
+                    <input
+                        type="text"
+                        name="location"
+                        value={formData.location}
+                        onChange={handleInputChange}
+                        placeholder="City, State"
+                        required
+                    />
+                </div>
+                <div className="input-group">
+                    <label>Job Type*</label>
+                    <select name="job_type" value={formData.job_type} onChange={handleInputChange}>
+                        <option>Full-time</option>
+                        <option>Part-time</option>
+                        <option>Contract</option>
+                        <option>Internship</option>
+                    </select>
+                </div>
+                <div className="input-group">
+                    <label>Deadline</label>
+                    <input
+                        type="date"
+                        name="deadline"
+                        value={formData.deadline}
+                        onChange={handleInputChange}
+                    />
                 </div>
             </div>
-
-            <div className="modern-form-grid">
-                <div className="form-group">
-                    <label>Job Title*</label>
-                    <div className="input-with-icon">
-                        <Briefcase size={18} />
-                        <input
-                            type="text"
-                            name="job_title"
-                            value={formData.job_title}
-                            onChange={handleInputChange}
-                            placeholder="e.g. Senior Backend Engineer"
-                            required
-                        />
-                    </div>
-                </div>
-
-                <div className="form-group">
-                    <label>Company Name*</label>
-                    <div className="input-with-icon">
-                        <Building2 size={18} />
-                        <input
-                            type="text"
-                            name="company"
-                            value={formData.company}
-                            onChange={handleInputChange}
-                            placeholder="Hiring Company"
-                            required
-                        />
-                    </div>
-                </div>
-
-                <div className="form-group">
-                    <label>Workplace Type*</label>
-                    <div className="input-with-icon">
-                        <MapPin size={18} />
-                        <select name="workplace_type" value={formData.workplace_type} onChange={handleInputChange}>
-                            <option>In Office</option>
-                            <option>Hybrid</option>
-                            <option>Remote</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div className="form-group">
-                    <label>Job Location*</label>
-                    <div className="input-with-icon">
-                        <MapPin size={18} />
-                        <input
-                            type="text"
-                            name="location"
-                            value={formData.location}
-                            onChange={handleInputChange}
-                            placeholder="City, State"
-                            required
-                        />
-                    </div>
-                </div>
-
-                <div className="form-group">
-                    <label>Job Type*</label>
-                    <div className="input-with-icon">
-                        <Clock size={18} />
-                        <select name="job_type" value={formData.job_type} onChange={handleInputChange}>
-                            <option>Full-time</option>
-                            <option>Part-time</option>
-                            <option>Contract</option>
-                            <option>Internship</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div className="form-group">
-                    <label>Application Deadline</label>
-                    <div className="input-with-icon">
-                        <Clock size={18} />
-                        <input
-                            type="date"
-                            name="deadline"
-                            value={formData.deadline}
-                            onChange={handleInputChange}
-                        />
-                    </div>
-                </div>
-
-                <div className="form-group full-width">
-                    <label>Job Description & Requirements*</label>
-                    <div className="textarea-wrapper">
-                        <textarea
-                            name="description"
-                            rows="10"
-                            value={formData.description}
-                            onChange={handleInputChange}
-                            placeholder="Outline the responsibilities, required skills, and what makes this role unique..."
-                            required
-                        />
-                    </div>
-                </div>
+            <div className="input-group full-width">
+                <label>Job Description* (Responsibilities & Requirements)</label>
+                <textarea
+                    name="description"
+                    rows="8"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    placeholder="Describe the role..."
+                    required
+                />
             </div>
         </div>
     );
 
     const renderStep2 = () => (
-        <div className="form-step active-step">
-            <div className="step-header-block">
-                <DollarSign size={28} className="text-primary" />
-                <div className="step-title-text">
-                    <h2>Compensation Details</h2>
-                    <p>Add salary information to attract the right candidates (optional).</p>
-                </div>
+        <div className="form-step">
+            <div className="card-header">
+                <DollarSign size={20} className="text-accent" />
+                <h2>Salary & Compensation (Optional)</h2>
             </div>
-            <div className="modern-form-grid">
-                <div className="form-group">
+            <div className="form-grid">
+                <div className="input-group">
                     <label>Salary Range</label>
-                    <div className="input-with-icon">
-                        <DollarSign size={18} />
-                        <input
-                            type="text"
-                            name="range"
-                            value={formData.salary.range}
-                            onChange={handleSalaryChange}
-                            placeholder="e.g. $80k - $120k"
-                        />
-                    </div>
+                    <input
+                        type="text"
+                        name="range"
+                        value={formData.salary.range}
+                        onChange={handleSalaryChange}
+                        placeholder="e.g. $80k - $120k"
+                    />
                 </div>
-                <div className="form-group">
+                <div className="input-group">
                     <label>Pay Type</label>
-                    <div className="input-with-icon">
-                        <Clock size={18} />
-                        <select name="pay_type" value={formData.salary.pay_type} onChange={handleSalaryChange}>
-                            <option>Yearly</option>
-                            <option>Monthly</option>
-                            <option>Hourly</option>
-                        </select>
-                    </div>
+                    <select name="pay_type" value={formData.salary.pay_type} onChange={handleSalaryChange}>
+                        <option>Yearly</option>
+                        <option>Monthly</option>
+                        <option>Hourly</option>
+                    </select>
                 </div>
             </div>
         </div>
     );
 
-
     const renderStep3 = () => (
-        <div className="form-step active-step">
-            <div className="step-header-block">
-                <HelpCircle size={28} className="text-primary" />
-                <div className="step-title-text">
-                    <h2>Screening Questions</h2>
-                    <p>Add questions to pre-filter candidates during the application process.</p>
-                </div>
+        <div className="form-step">
+            <div className="card-header">
+                <HelpCircle size={20} className="text-accent" />
+                <h2>Screening Questions</h2>
             </div>
+            <p className="step-desc">Add questions to pre-filter candidates. They will be asked these during application.</p>
 
             <div className="questions-list">
                 {formData.screening_questions.map((q, idx) => (
@@ -337,26 +295,10 @@ const PostJobPage = ({ onJobPosted }) => {
     return (
         <div className="post-job-container">
             <div className="step-indicator">
-                {[
-                    { num: 1, label: 'Job Overview', icon: <Briefcase size={18} /> },
-                    { num: 2, label: 'Compensation', icon: <DollarSign size={18} /> },
-                    { num: 3, label: 'Screening', icon: <HelpCircle size={18} /> }
-                ].map((s, idx, arr) => (
-                    <React.Fragment key={s.num}>
-                        <div className={`step-item ${step === s.num ? 'active' : step > s.num ? 'completed' : ''}`}>
-                            <div className="step-dot-wrapper">
-                                <div className="step-dot">
-                                    {step > s.num ? <CheckCircle2 size={20} /> : s.icon}
-                                </div>
-                            </div>
-                            <span className="step-label">{s.label}</span>
-                        </div>
-                        {idx < arr.length - 1 && (
-                            <div className={`step-connector ${step > s.num ? 'completed' : ''}`}>
-                                <div className="step-connector-fill" />
-                            </div>
-                        )}
-                    </React.Fragment>
+                {[1, 2, 3].map(s => (
+                    <div key={s} className={`step-dot ${step === s ? 'active' : step > s ? 'completed' : ''}`}>
+                        {step > s ? <CheckCircle2 size={16} /> : s}
+                    </div>
                 ))}
             </div>
 

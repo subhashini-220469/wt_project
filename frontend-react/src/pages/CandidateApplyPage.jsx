@@ -17,7 +17,6 @@ import {
     FileCheck
 } from 'lucide-react';
 import { apiService } from '../services/api';
-import { getResumeData } from '../utils/resumeStorage';
 
 const CandidateApplyPage = ({ job, onBack }) => {
     const [step, setStep] = useState(1); // 1: Questions, 2: Upload, 3: Result
@@ -32,8 +31,9 @@ const CandidateApplyPage = ({ job, onBack }) => {
     const [useMaster, setUseMaster] = useState(false);
 
     useEffect(() => {
-        const data = getResumeData();
-        if (data) {
+        const saved = localStorage.getItem('candidate_resume_data');
+        if (saved) {
+            const data = JSON.parse(saved);
             setFormData(prev => ({
                 ...prev,
                 name: prev.name || data.name || '',
@@ -65,8 +65,8 @@ const CandidateApplyPage = ({ job, onBack }) => {
         try {
             let resumeDataOverride = null;
             if (useMaster) {
-                const saved = getResumeData();
-                resumeDataOverride = saved?.resume_data;
+                const saved = JSON.parse(localStorage.getItem('candidate_resume_data'));
+                resumeDataOverride = saved.resume_data;
             }
 
             const res = await apiService.applyToJob(

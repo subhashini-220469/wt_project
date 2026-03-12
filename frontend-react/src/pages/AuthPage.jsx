@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, User, Building, ArrowRight, Briefcase, UserCheck, CheckCircle, Shield, Zap, Users, BarChart3, Star, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, User, Building, ArrowRight, Briefcase, UserCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { GoogleLogin } from "@react-oauth/google";
 import axios from "axios";
 import authClient from "../services/authClient";
+import SmarthireSideCard from "../components/SmarthireSideCard";
 import '../styles/AuthPage.css';
 
 const AUTH_BASE = "http://localhost:5000";
@@ -20,9 +21,7 @@ const AuthPage = ({ onLoginSuccess }) => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [successMessage, setSuccessMessage] = useState(null);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
 
   // State for first-time Google users who need to pick a role
   const [pendingGoogleUser, setPendingGoogleUser] = useState(null); // { accessToken }
@@ -145,10 +144,7 @@ const AuthPage = ({ onLoginSuccess }) => {
       });
       const data = await res.json();
 
-      if (!res.ok) {
-        // Show the specific error from the backend (e.g. "Password must contain at least one uppercase letter")
-        throw new Error(data.error || 'Something went wrong. Please try again.');
-      }
+      if (!res.ok) throw new Error(data.error || data.errors?.[0]?.message || 'Authentication failed');
 
       if (isLogin) {
         localStorage.setItem('accessToken', data.accessToken);
@@ -158,8 +154,7 @@ const AuthPage = ({ onLoginSuccess }) => {
         navigate('/');
       } else {
         setIsLogin(true);
-        setSuccessMessage('Account created successfully! Please sign in.');
-        setError(null);
+        alert("Account created successfully! Please sign in.");
       }
     } catch (err) {
       setError(err.message);
@@ -171,7 +166,6 @@ const AuthPage = ({ onLoginSuccess }) => {
   const toggleMode = () => {
     setIsLogin(!isLogin);
     setError(null);
-    setSuccessMessage(null);
   };
 
   // ── Role Selection Screen (first-time Google users) ──────────────────────
@@ -269,7 +263,7 @@ const AuthPage = ({ onLoginSuccess }) => {
   return (
     <div className="auth-container">
       <div className="auth-split">
-        {/* Left Side - Professional Visuals */}
+        {/* Left Side - Visuals */}
         <div className="auth-visuals">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -277,62 +271,10 @@ const AuthPage = ({ onLoginSuccess }) => {
             transition={{ duration: 0.8 }}
             className="visual-content"
           >
-            <div className="system-badge">
-              <span className="badge-dot"></span>
-              AI-Powered ATS
-            </div>
-            <h1>{isLogin ? 'Welcome Back to HireAI Pro' : 'Start Hiring Smarter'}</h1>
-            <p>{isLogin
-              ? 'Your AI recruitment dashboard is ready. Sign in to continue managing candidates and jobs.'
-              : 'Join thousands of companies using AI to find top talent faster than ever.'
-            }</p>
-
-            {/* Stats Row */}
-            <div className="auth-stats-row">
-              <div className="auth-stat">
-                <span className="auth-stat__number">10K+</span>
-                <span className="auth-stat__label">Resumes Screened</span>
-              </div>
-              <div className="auth-stat">
-                <span className="auth-stat__number">95%</span>
-                <span className="auth-stat__label">Match Accuracy</span>
-              </div>
-              <div className="auth-stat">
-                <span className="auth-stat__number">3x</span>
-                <span className="auth-stat__label">Faster Hiring</span>
-              </div>
-            </div>
-
-            {/* Feature List */}
-            <div className="auth-features">
-              <motion.div className="auth-feature" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
-                <div className="auth-feature__icon"><Zap size={18} /></div>
-                <div>
-                  <div className="auth-feature__title">AI-Powered Screening</div>
-                  <div className="auth-feature__desc">Instantly score resumes against job descriptions</div>
-                </div>
-              </motion.div>
-              <motion.div className="auth-feature" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }}>
-                <div className="auth-feature__icon"><BarChart3 size={18} /></div>
-                <div>
-                  <div className="auth-feature__title">Smart Analytics</div>
-                  <div className="auth-feature__desc">Track hiring metrics and candidate pipelines</div>
-                </div>
-              </motion.div>
-              <motion.div className="auth-feature" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.7 }}>
-                <div className="auth-feature__icon"><Users size={18} /></div>
-                <div>
-                  <div className="auth-feature__title">Automated Outreach</div>
-                  <div className="auth-feature__desc">Email top candidates automatically</div>
-                </div>
-              </motion.div>
-            </div>
-
-            {/* Trust Badge */}
-            <div className="auth-trust">
-              <Shield size={14} />
-              <span>Enterprise-grade security  •  SOC 2 Compliant  •  GDPR Ready</span>
-            </div>
+            <SmarthireSideCard
+              onPostJob={() => navigate('/post-job')}
+              onExplore={() => alert('Explore features coming soon.')}
+            />
           </motion.div>
         </div>
 
@@ -343,13 +285,6 @@ const AuthPage = ({ onLoginSuccess }) => {
               <h2>{isLogin ? 'Sign In' : 'Create Account'}</h2>
               <p>{isLogin ? 'Please enter your credentials to continue.' : 'Fill in your details to get started.'}</p>
             </div>
-
-            {successMessage && (
-              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="success-banner">
-                <CheckCircle size={18} />
-                {successMessage}
-              </motion.div>
-            )}
 
             {error && (
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="error-banner">
@@ -441,22 +376,13 @@ const AuthPage = ({ onLoginSuccess }) => {
               <div className="input-group">
                 <Lock className="input-icon" size={18} />
                 <input
-                  type={showPassword ? 'text' : 'password'}
+                  type="password"
                   name="password"
                   placeholder="Password"
                   required
                   value={formData.password}
                   onChange={handleInputChange}
                 />
-                <button
-                  type="button"
-                  className="password-toggle-btn"
-                  onClick={() => setShowPassword(!showPassword)}
-                  tabIndex={-1}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
               </div>
 
 

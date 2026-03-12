@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-
 MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017/")
 db_name = "resume_screening"
 
