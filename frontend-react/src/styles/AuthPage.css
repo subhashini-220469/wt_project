@@ -357,16 +357,16 @@
   border: none;
   background: transparent;
   font-size: 1rem;
-<<<<<<< HEAD
+
   color: var(--text-primary);
-=======
+
   /* Use a mix of 2 professional colors: deep blue/emerald */
   background-image: linear-gradient(90deg, #38bdf8, #34d399);
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
->>>>>>> 3af1e6567d5ce5f4f06cd9def8dc3623c1bf3696
+
   outline: none;
   font-family: inherit;
   font-weight: 600;
