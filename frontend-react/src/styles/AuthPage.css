@@ -318,7 +318,7 @@
   gap: 1.5rem;
 }
 
-.input-group {
+.auth-form-section .input-group {
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -329,26 +329,42 @@
   transition: all 0.3s;
 }
 
-.input-group:focus-within {
+.auth-form-section .input-group:focus-within {
   border-color: var(--emerald-500);
   box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
   background: #111827;
 }
 
-.input-icon {
+.auth-form-section .input-icon {
   color: var(--text-secondary);
   flex-shrink: 0;
 }
 
-.input-group input {
+.auth-form-section .input-group input {
   flex: 1;
   padding: 1.25rem 0;
   border: none;
   background: transparent;
   font-size: 1rem;
-  color: white;
+  /* Use a mix of 2 professional colors: deep blue/emerald */
+  background-image: linear-gradient(90deg, #38bdf8, #34d399);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
   outline: none;
   font-family: inherit;
+  font-weight: 600;
+}
+
+/* Fix for browser autofill overriding background and causing invisible text */
+.auth-form-section .input-group input:-webkit-autofill,
+.auth-form-section .input-group input:-webkit-autofill:hover, 
+.auth-form-section .input-group input:-webkit-autofill:focus, 
+.auth-form-section .input-group input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #0f172a inset !important;
+  -webkit-text-fill-color: #34d399 !important;
+  transition: background-color 5000s ease-in-out 0s;
 }
 
 .submit-btn {

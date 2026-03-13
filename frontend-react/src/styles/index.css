@@ -921,6 +921,13 @@ textarea:focus {
     border-radius: 12px;
     font-size: 0.95rem;
     background: #fcfcfd;
+    /* Use a mix of 2 brighter professional colors (cyan/emerald) for high visibility */
+    background-image: linear-gradient(90deg, #38bdf8, #34d399);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    font-weight: 600;
 }
 
 .step-footer {
