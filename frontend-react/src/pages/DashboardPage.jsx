@@ -10,7 +10,11 @@ import {
     Target,
     ChevronLeft,
     ChevronRight,
-    Briefcase
+    Briefcase,
+    Download,
+    FileSpreadsheet,
+    AlertCircle,
+    Loader2
 } from 'lucide-react';
 import { apiService } from '../services/api';
 
@@ -19,6 +23,8 @@ const DashboardPage = () => {
     const [loading, setLoading] = useState(true);
     const [overall, setOverall] = useState({ total_applied: 0, total_selected: 0, total_interviews: 0 });
     const [selectedJob, setSelectedJob] = useState(null);
+    const [candidates, setCandidates] = useState([]);
+    const [fetchingCandidates, setFetchingCandidates] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -41,6 +47,104 @@ const DashboardPage = () => {
             console.error(err);
         } finally {
             setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (selectedJob) {
+            fetchCandidates(selectedJob.job_id);
+        } else {
+            setCandidates([]);
+        }
+    }, [selectedJob]);
+
+    const fetchCandidates = async (jobId) => {
+        setFetchingCandidates(true);
+        try {
+            const data = await apiService.fetchResults(jobId);
+            setCandidates(data);
+        } catch (err) {
+            console.error("Error fetching candidates:", err);
+        } finally {
+            setFetchingCandidates(false);
+        }
+    };
+
+    const downloadCSV = async () => {
+        let exportRows = [];
+        let filename = `Analytics_Report_${new Date().toLocaleDateString()}`;
+        const headers = ["Rank", "Candidate Name", "Match Score (%)", "Job Title"];
+
+        try {
+            if (selectedJob) {
+                filename = `Analytics_${selectedJob.job_title.replace(/\s+/g, '_')}`;
+
+                if (candidates && candidates.length > 0) {
+                    exportRows = candidates.map((c, index) => [
+                        index + 1,
+                        c.resume_data?.name || "Unknown",
+                        (c.score?.total_score || c.score || 0).toFixed(1),
+                        selectedJob.job_title
+                    ]);
+                } else {
+                    exportRows = [["No records found", "", "", ""]];
+                }
+            } else {
+                filename = `Overall_Candidate_Analytics`;
+
+                if (stats.length === 0) {
+                    exportRows = [["No job records found to export", "", "", ""]];
+                } else {
+                    setFetchingCandidates(true);
+                    const allResults = await Promise.all(
+                        stats.map(async (job) => {
+                            try {
+                                const res = await apiService.fetchResults(job.job_id);
+                                return res.map(candidate => ({ ...candidate, job_title: job.job_title }));
+                            } catch (e) {
+                                return [];
+                            }
+                        })
+                    );
+
+                    const flattened = allResults.flat().sort((a, b) =>
+                        (b.score?.total_score || b.score || 0) - (a.score?.total_score || a.score || 0)
+                    );
+
+                    if (flattened.length > 0) {
+                        exportRows = flattened.map((c, index) => [
+                            index + 1,
+                            c.resume_data?.name || "Unknown",
+                            (c.score?.total_score || c.score || 0).toFixed(1),
+                            c.job_title
+                        ]);
+                    } else {
+                        exportRows = [["No candidate records found across all jobs", "", "", ""]];
+                    }
+                }
+            }
+
+            const csvContent = [
+                headers.join(","),
+                ...exportRows.map(row => row.join(","))
+            ].join("\n");
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `${filename}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (err) {
+            console.error("Export error:", err);
+            // Even on error, we can download a file stating failure if preferred, 
+            // but usually a catch just alerts the user. 
+            // I'll stick to the "no records" requirement.
+        } finally {
+            setFetchingCandidates(false);
         }
     };
 
@@ -95,6 +199,14 @@ const DashboardPage = () => {
                     {selectedJob ? 'Hiring Funnel Details' : 'Job Performance Index'}
                 </h2>
                 <div className="header-actions">
+                    <button
+                        className="btn btn-success"
+                        onClick={downloadCSV}
+                        disabled={fetchingCandidates}
+                    >
+                        {fetchingCandidates ? <Loader2 size={18} className="spin" /> : <FileSpreadsheet size={18} />}
+                        Export CSV
+                    </button>
                     {selectedJob && (
                         <button className="btn btn-outline" onClick={() => setSelectedJob(null)}>
                             <ChevronLeft size={18} /> Back to List

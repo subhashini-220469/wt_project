@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { AnimatePresence } from 'framer-motion';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Sun, Moon } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 // Components
 import Sidebar from './components/Sidebar';
 import ScanningOverlay from './components/ScanningOverlay';
@@ -40,6 +41,23 @@ function App() {
     const [showEditModal, setShowEditModal] = useState(false);
     const [candidateStatuses, setCandidateStatuses] = useState({});
     const [allFinished, setAllFinished] = useState(false);
+
+    // Theme State
+    const [isDarkMode, setIsDarkMode] = useState(() => {
+        const saved = localStorage.getItem('theme');
+        return saved ? saved === 'dark' : true;
+    });
+
+    useEffect(() => {
+        if (isDarkMode) {
+            document.body.classList.remove('light-mode');
+        } else {
+            document.body.classList.add('light-mode');
+        }
+        localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+    }, [isDarkMode]);
+
+    const toggleTheme = () => setIsDarkMode(prev => !prev);
 
     // Fetch JDs for Automation Tab
     useEffect(() => {
@@ -200,115 +218,138 @@ function App() {
         setActiveTab('automation');
     };
 
-    if (!userRole) {
-        return (
-            <Routes>
-                <Route path="/auth" element={
-                    <AuthPage onLoginSuccess={(role) => handleRoleSelect(role === 'hr' ? 'employer' : 'employee')} />
-                } />
-                {/* Make auth the default for now when unauthorized */}
-                <Route path="*" element={<Navigate to="/auth" replace />} />
-            </Routes>
-        );
-    }
-
     return (
         <div className="app-container">
-            <EmailModal
-                show={showEditModal}
-                onClose={() => setShowEditModal(false)}
-                subject={emailSubject}
-                setSubject={setEmailSubject}
-                body={emailBody}
-                setBody={setEmailBody}
-            />
+            {!userRole ? (
+                <Routes>
+                    <Route path="/auth" element={
+                        <AuthPage onLoginSuccess={(role) => handleRoleSelect(role === 'hr' ? 'employer' : 'employee')} />
+                    } />
+                    <Route path="*" element={<Navigate to="/auth" replace />} />
+                </Routes>
+            ) : (
+                <>
+                    <EmailModal
+                        show={showEditModal}
+                        onClose={() => setShowEditModal(false)}
+                        subject={emailSubject}
+                        setSubject={setEmailSubject}
+                        body={emailBody}
+                        setBody={setEmailBody}
+                    />
 
-            <Sidebar
-                activeTab={activeTab}
-                setActiveTab={setActiveTab}
-                userRole={userRole}
-                onLogout={handleLogout}
-            />
+                    <Sidebar
+                        activeTab={activeTab}
+                        setActiveTab={setActiveTab}
+                        userRole={userRole}
+                        onLogout={handleLogout}
+                    />
 
-            <main className="main-content">
-                <header className="top-header">
-                    <h1>
-                        {activeTab === 'post-job' ? 'Post a New Job Opening' :
-                            activeTab === 'managed-jobs' ? 'Manage Your Postings' :
-                                activeTab === 'dashboard' ? 'Job Performance & Analytics' :
-                                    activeTab === 'discover' ? 'Available Opportunities' :
-                                        activeTab === 'apply' ? 'Apply for Position' :
-                                            activeTab === 'my-apps' ? 'My Application Status' :
-                                                activeTab === 'resume' ? 'My Master Resume' :
-                                                    'Email Automation'}
-                    </h1>
-                    <div className="user-profile">
-                        <img src={`https://ui-avatars.com/api/?name=HR+Admin&background=6366f1&color=fff`} alt="Profile" />
-                    </div>
-                </header>
+                    <main className="main-content">
+                        <header className="top-header">
+                            <h1>
+                                {activeTab === 'post-job' ? 'Post a New Job Opening' :
+                                    activeTab === 'managed-jobs' ? 'Manage Your Postings' :
+                                        activeTab === 'dashboard' ? 'Job Performance & Analytics' :
+                                            activeTab === 'discover' ? 'Available Opportunities' :
+                                                activeTab === 'apply' ? 'Apply for Position' :
+                                                    activeTab === 'my-apps' ? 'My Application Status' :
+                                                        activeTab === 'resume' ? 'My Master Resume' :
+                                                            activeTab === 'profile' ? 'My Profile' :
+                                                                'Email Automation'}
+                            </h1>
+                            <div className="header-right">
+                                <motion.button 
+                                    className="theme-toggle" 
+                                    onClick={toggleTheme} 
+                                    aria-label="Toggle Theme"
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    initial={false}
+                                    animate={{ rotate: isDarkMode ? 0 : 180 }}
+                                >
+                                    <AnimatePresence mode="wait" initial={false}>
+                                        <motion.div
+                                            key={isDarkMode ? 'sun' : 'moon'}
+                                            initial={{ opacity: 0, scale: 0.5, rotate: -45 }}
+                                            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                                            exit={{ opacity: 0, scale: 0.5, rotate: 45 }}
+                                            transition={{ duration: 0.2 }}
+                                        >
+                                            {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+                                        </motion.div>
+                                    </AnimatePresence>
+                                </motion.button>
+                                <div className="user-profile">
+                                    <img src={`https://ui-avatars.com/api/?name=HR+Admin&background=6366f1&color=fff`} alt="Profile" />
+                                </div>
+                            </div>
+                        </header>
 
-                <div className="content-wrapper">
-                    <AnimatePresence mode="wait">
+                        <div className="content-wrapper">
+                            <AnimatePresence mode="wait">
 
-                        {userRole === 'employer' && (
-                            <>
-                                {activeTab === 'post-job' && (
-                                    <PostJobPage onJobPosted={handlePostJob} />
+                                {userRole === 'employer' && (
+                                    <>
+                                        {activeTab === 'post-job' && (
+                                            <PostJobPage onJobPosted={handlePostJob} />
+                                        )}
+                                        {activeTab === 'managed-jobs' && (
+                                            <ManagedJobsPage onViewAnalytics={handleViewAnalytics} />
+                                        )}
+                                        {activeTab === 'dashboard' && (
+                                            <DashboardPage results={results} />
+                                        )}
+                                        {activeTab === 'automation' && (
+                                            <AutomationPage
+                                                jdsList={jdsList}
+                                                selectedJd={selectedJd}
+                                                setSelectedJd={setSelectedJd}
+                                                candidatesForJd={candidatesForJd}
+                                                selectedCandidates={selectedCandidates}
+                                                toggleCandidate={toggleCandidate}
+                                                candidateStatuses={candidateStatuses}
+                                                isSendingEmails={isSendingEmails}
+                                                handleSendBroadcast={handleSendBroadcast}
+                                                handleRetry={handleRetry}
+                                                setShowEditModal={setShowEditModal}
+                                                allFinished={allFinished}
+                                                formatDate={formatDate}
+                                            />
+                                        )}
+                                    </>
                                 )}
-                                {activeTab === 'managed-jobs' && (
-                                    <ManagedJobsPage onViewAnalytics={handleViewAnalytics} />
-                                )}
-                                {activeTab === 'dashboard' && (
-                                    <DashboardPage results={results} />
-                                )}
-                                {activeTab === 'automation' && (
-                                    <AutomationPage
-                                        jdsList={jdsList}
-                                        selectedJd={selectedJd}
-                                        setSelectedJd={setSelectedJd}
-                                        candidatesForJd={candidatesForJd}
-                                        selectedCandidates={selectedCandidates}
-                                        toggleCandidate={toggleCandidate}
-                                        candidateStatuses={candidateStatuses}
-                                        isSendingEmails={isSendingEmails}
-                                        handleSendBroadcast={handleSendBroadcast}
-                                        handleRetry={handleRetry}
-                                        setShowEditModal={setShowEditModal}
-                                        allFinished={allFinished}
-                                        formatDate={formatDate}
-                                    />
-                                )}
-                            </>
-                        )}
 
-                        {userRole === 'employee' && (
-                            <>
-                                {activeTab === 'discover' && (
-                                    <JobDiscoveryPage onApply={handleApplyJob} />
+                                {userRole === 'employee' && (
+                                    <>
+                                        {activeTab === 'discover' && (
+                                            <JobDiscoveryPage onApply={handleApplyJob} />
+                                        )}
+                                        {activeTab === 'resume' && (
+                                            <ResumeUploadPage />
+                                        )}
+                                        {activeTab === 'apply' && selectedJobToApply && (
+                                            <CandidateApplyPage
+                                                job={selectedJobToApply}
+                                                onBack={() => {
+                                                    setSelectedJobToApply(null);
+                                                    setActiveTab('discover');
+                                                }}
+                                            />
+                                        )}
+                                    </>
                                 )}
-                                {activeTab === 'resume' && (
-                                    <ResumeUploadPage />
-                                )}
-                                {activeTab === 'apply' && selectedJobToApply && (
-                                    <CandidateApplyPage
-                                        job={selectedJobToApply}
-                                        onBack={() => {
-                                            setSelectedJobToApply(null);
-                                            setActiveTab('discover');
-                                        }}
-                                    />
-                                )}
-                            </>
-                        )}
 
-                        {activeTab === 'profile' && (
-                            <ProfilePage />
-                        )}
-                    </AnimatePresence>
-                </div>
-            </main>
+                                {activeTab === 'profile' && (
+                                    <ProfilePage />
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    </main>
 
-            <ScanningOverlay isVisible={isAnalyzing} files={[]} />
+                    <ScanningOverlay isVisible={isAnalyzing} files={[]} />
+                </>
+            )}
         </div>
     );
 }
