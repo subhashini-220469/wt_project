@@ -94,18 +94,18 @@ function App() {
     // Update document title dynamically based on active tab
     useEffect(() => {
         const titles = {
-            'upload': 'Resume Screening | HireAI Pro',
-            'post-job': 'Post a Job | HireAI Pro',
-            'dashboard': 'Analytics | HireAI Pro',
-            'automation': 'Outreach | HireAI Pro',
-            'discover': 'Browse Jobs | HireAI Pro',
-            'resume': 'My Resume | HireAI Pro',
-            'my-apps': 'My Applications | HireAI Pro',
-            'apply': 'Apply for Job | HireAI Pro',
-            'profile': 'My Profile | HireAI Pro'
+            'upload': 'Resume Screening | smartHire',
+            'post-job': 'Post a Job | smartHire',
+            'dashboard': 'Analytics | smartHire',
+            'automation': 'Outreach | smartHire',
+            'discover': 'Browse Jobs | smartHire',
+            'resume': 'My Resume | smartHire',
+            'my-apps': 'My Applications | smartHire',
+            'apply': 'Apply for Job | smartHire',
+            'profile': 'My Profile | smartHire'
         };
 
-        const pageTitle = titles[activeTab] || 'HireAI Pro';
+        const pageTitle = titles[activeTab] || 'smartHire';
         document.title = pageTitle;
     }, [activeTab]);
 
@@ -218,6 +218,17 @@ function App() {
         setActiveTab('automation');
     };
 
+    if (!userRole) {
+        return (
+            <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/auth" element={
+                    <AuthPage onLoginSuccess={(role) => handleRoleSelect(role === 'hr' ? 'employer' : 'employee')} />
+                } />
+                <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+        );
+    }
     return (
         <div className="app-container">
             {!userRole ? (
@@ -245,46 +256,24 @@ function App() {
                         onLogout={handleLogout}
                     />
 
-                    <main className="main-content">
-                        <header className="top-header">
-                            <h1>
-                                {activeTab === 'post-job' ? 'Post a New Job Opening' :
-                                    activeTab === 'managed-jobs' ? 'Manage Your Postings' :
-                                        activeTab === 'dashboard' ? 'Job Performance & Analytics' :
-                                            activeTab === 'discover' ? 'Available Opportunities' :
-                                                activeTab === 'apply' ? 'Apply for Position' :
-                                                    activeTab === 'my-apps' ? 'My Application Status' :
-                                                        activeTab === 'resume' ? 'My Master Resume' :
-                                                            activeTab === 'profile' ? 'My Profile' :
-                                                                'Email Automation'}
-                            </h1>
-                            <div className="header-right">
-                                <motion.button 
-                                    className="theme-toggle" 
-                                    onClick={toggleTheme} 
-                                    aria-label="Toggle Theme"
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 0.9 }}
-                                    initial={false}
-                                    animate={{ rotate: isDarkMode ? 0 : 180 }}
-                                >
-                                    <AnimatePresence mode="wait" initial={false}>
-                                        <motion.div
-                                            key={isDarkMode ? 'sun' : 'moon'}
-                                            initial={{ opacity: 0, scale: 0.5, rotate: -45 }}
-                                            animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                                            exit={{ opacity: 0, scale: 0.5, rotate: 45 }}
-                                            transition={{ duration: 0.2 }}
-                                        >
-                                            {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-                                        </motion.div>
-                                    </AnimatePresence>
-                                </motion.button>
-                                <div className="user-profile">
-                                    <img src={`https://ui-avatars.com/api/?name=HR+Admin&background=6366f1&color=fff`} alt="Profile" />
-                                </div>
-                            </div>
-                        </header>
+            <main className="main-content">
+                <header className="top-header">
+                    <h1>
+                        {activeTab === 'post-job' ? 'Post a New Job Opening' :
+                            activeTab === 'managed-jobs' ? 'Manage Your Postings' :
+                                activeTab === 'dashboard' ? 'Job Performance & Analytics' :
+                                    activeTab === 'discover' ? 'Available Opportunities' :
+                                        activeTab === 'apply' ? 'Apply for Position' :
+                                            activeTab === 'my-apps' ? 'My Application Status' :
+                                                activeTab === 'profile' ? 'My Profile' :
+                                                    activeTab === 'resume' ? 'My Resume' :
+                                                        activeTab === 'automation' ? 'Email Outreach' :
+                                                            ''}
+                    </h1>
+                    <div className="user-profile">
+                        <img src={`https://ui-avatars.com/api/?name=HR+Admin&background=6366f1&color=fff`} alt="Profile" />
+                    </div>
+                </header>
 
                         <div className="content-wrapper">
                             <AnimatePresence mode="wait">

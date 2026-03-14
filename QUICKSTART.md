@@ -72,6 +72,30 @@ The backend requires certain environment variables to communicate with the AI an
 
 ---
 
-## 💡 Pro-Tips for the Team
+## 💾 Seeding Mock Data
+
+To quickly test the system, you can populate the database with dummy users and job descriptions.
+
+### 1. Seed Authentication Users
+Run this to create a default HR and Candidate account:
+```bash
+cd backend
+.\venv\Scripts\activate
+python seed_users.py
+```
+**Default Credentials:**
+- **HR Admin:** `hr@example.com` / `password123`
+- **Candidate:** `john.doe.mock@gmail.com` / `password123`
+
+### 2. Seed Jobs & Resumes
+Run this to populate the dashboard with sample Job Descriptions and AI-ranked resumes:
+```bash
+python seed_db.py
+```
+
+---
+
+## 💡 Troubleshooting & Pro-Tips
+- **CORS Errors**: If the frontend cannot reach the backend, ensure the Python server is running on `http://localhost:8000`.
 - **Gmail Setup**: If you get a "Bad Credentials" error, ensure **2-Step Verification** is ON in your Google Account settings, then generate a new **App Password**.
-- **Mock Data**: Run `python seed_db.py` in the backend folder to populate the system with test data instantly.
+- **Database Clean**: The seeding scripts will wipe existing collections before adding new data.

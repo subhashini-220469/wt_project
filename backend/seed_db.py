@@ -12,7 +12,7 @@ async def seed_data():
     client = AsyncIOMotorClient(MONGO_URL)
     db = client[db_name]
 
-    print("🌱 Seeding Mock Data...")
+    print("Seeding Mock Data...")
 
     # Clear existing
     await db.jds.delete_many({})
@@ -144,7 +144,7 @@ async def seed_data():
     }
     await db.jds.insert_one(jd_mock_2)
 
-    print(f"✅ Seeding complete! Added 2 JDs and 3 candidates for '{jd_mock['structured_data']['job_title']}'.")
+    print(f"Seeding complete! Added 2 JDs and 3 candidates for '{jd_mock['structured_data']['job_title']}'.")
     client.close()
 
 if __name__ == "__main__":

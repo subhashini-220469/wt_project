@@ -21,9 +21,9 @@ class Database:
         try:
             jd_count = await cls.db.jds.count_documents({})
             res_count = await cls.db.resumes.count_documents({})
-            print(f"📊 Current DB Stats: {jd_count} Job Descriptions, {res_count} Resumes stored.")
+            print(f"Current DB Stats: {jd_count} Job Descriptions, {res_count} Resumes stored.")
         except Exception as e:
-            print(f"⚠️ Could not fetch stats: {e}")
+            print(f"Could not fetch stats: {e}")
 
     @classmethod
     async def close_db(cls):

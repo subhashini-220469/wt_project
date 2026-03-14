@@ -22,7 +22,7 @@ async def create_job(job_post: JobPosting):
         result = await db.db.jobs.insert_one(job_dict)
         return {"id": str(result.inserted_id), "message": "Job posted successfully"}
     except Exception as e:
-        print(f"❌ Error creating job: {e}")
+        print(f"Error creating job: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/jobs")
@@ -74,7 +74,7 @@ async def apply_to_job(
         override_dict = json.loads(resume_data_override) if resume_data_override else None
         return await ATSController.apply_to_job(job_id, name, email, resume, answers_dict, override_dict)
     except Exception as e:
-        print(f"❌ Error in /apply: {e}")
+        print(f"Error in /apply: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/rescore/{job_id}")
@@ -94,7 +94,7 @@ async def rescore_job(job_id: str, resume_data: ResumeData):
         score_res = ScoringEngine.score_resume(resume_data, jd_data)
         return score_res
     except Exception as e:
-        print(f"❌ Error in /rescore: {e}")
+        print(f"Error in /rescore: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete("/jobs/{job_id}")
@@ -107,7 +107,7 @@ async def delete_job(job_id: str):
         await db.db.resumes.delete_many({"jd_id": job_id})
         return {"message": "Job and associated applications deleted successfully"}
     except Exception as e:
-        print(f"❌ Error deleting job: {e}")
+        print(f"Error deleting job: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.patch("/jobs/{job_id}/status")
@@ -121,7 +121,7 @@ async def update_job_status(job_id: str, status: str = Form(...)):
             raise HTTPException(status_code=404, detail="Job not found")
         return {"message": f"Job status updated to {status}"}
     except Exception as e:
-        print(f"❌ Error updating job status: {e}")
+        print(f"Error updating job status: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 class EmailRequest(BaseModel):
@@ -172,7 +172,7 @@ async def get_job_analytics():
             
         return analytics
     except Exception as e:
-        print(f"❌ Error in analytics: {e}")
+        print(f"Error in analytics: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/send-emails")
