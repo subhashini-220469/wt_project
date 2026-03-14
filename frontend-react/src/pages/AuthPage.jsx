@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, User, Building, ArrowRight, Briefcase, UserCheck } from 'lucide-react';
+import { Mail, Lock, User, Building, ArrowRight, Briefcase, UserCheck, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { GoogleLogin } from "@react-oauth/google";
 import axios from "axios";
@@ -33,9 +33,9 @@ const AuthPage = ({ onLoginSuccess }) => {
 
   React.useEffect(() => {
     if (pendingGoogleUser) {
-        document.title = 'Select Role | HireAI Pro';
+        document.title = 'Select Role | smartHire';
     } else {
-        document.title = isLogin ? 'Sign In | HireAI Pro' : 'Create Account | HireAI Pro';
+        document.title = isLogin ? 'Sign In | smartHire' : 'Create Account | smartHire';
     }
   }, [isLogin, pendingGoogleUser]);
 
@@ -206,7 +206,7 @@ const AuthPage = ({ onLoginSuccess }) => {
                   onClick={() => setSelectedRole('user')}
                   type="button"
                 >
-                  <UserCheck size={36} strokeWidth={1.5} />
+                  <img src="/icon-candidate.png" alt="Candidate" style={{ width: '50px', height: '50px', marginBottom: '12px' }} />
                   <span className="role-card__title">Candidate</span>
                   <span className="role-card__desc">Browse jobs and apply for positions</span>
                 </motion.button>
@@ -218,7 +218,7 @@ const AuthPage = ({ onLoginSuccess }) => {
                   onClick={() => setSelectedRole('hr')}
                   type="button"
                 >
-                  <Briefcase size={36} strokeWidth={1.5} />
+                  <img src="/icon-recruiter.png" alt="Recruiter" style={{ width: '50px', height: '50px', marginBottom: '12px' }} />
                   <span className="role-card__title">HR / Recruiter</span>
                   <span className="role-card__desc">Post jobs and screen candidates</span>
                 </motion.button>
@@ -271,10 +271,25 @@ const AuthPage = ({ onLoginSuccess }) => {
             transition={{ duration: 0.8 }}
             className="visual-content"
           >
-            <SmarthireSideCard
-              onPostJob={() => navigate('/post-job')}
-              onExplore={() => alert('Explore features coming soon.')}
-            />
+            <h1 className="auth-welcome-title">
+              welcome <br/> 
+              <span className="brand-smart">smart</span><span className="brand-hire">Hire</span>
+            </h1>
+            
+            <div className="auth-simple-points">
+              <div className="simple-point">
+                <CheckCircle size={28} className="text-success" />
+                <span>upload</span>
+              </div>
+              <div className="simple-point">
+                <CheckCircle size={28} className="text-success" />
+                <span>get match</span>
+              </div>
+              <div className="simple-point">
+                <CheckCircle size={28} className="text-success" />
+                <span>get hired</span>
+              </div>
+            </div>
           </motion.div>
         </div>
 

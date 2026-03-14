@@ -116,7 +116,7 @@ const ManagedJobsPage = ({ onViewAnalytics }) => {
                                 <td>
                                     <div className="date-cell">
                                         <Calendar size={14} className="text-muted" />
-                                        <span>{new Date(job._id.substring(0, 8), 16).toLocaleDateString() || 'N/A'}</span>
+                                        <span>{new Date(parseInt(job._id.substring(0, 8), 16) * 1000).toLocaleDateString() || 'N/A'}</span>
                                     </div>
                                 </td>
                                 <td>

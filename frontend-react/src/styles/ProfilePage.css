@@ -26,7 +26,7 @@
 
 .profile-cover {
     height: 140px;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6, #06b6d4);
+    background: linear-gradient(135deg, var(--sidebar-bg), #6d28d9, var(--accent));
 }
 
 .profile-avatar-section {
@@ -47,8 +47,8 @@
     width: 100px;
     height: 100px;
     border-radius: 50%;
-    border: 4px solid var(--card-bg);
-    box-shadow: var(--glass-shadow);
+    border: 4px solid white;
+    box-shadow: 0 4px 16px rgba(109, 40, 217, 0.25);
     object-fit: cover;
     display: block;
 }
@@ -57,7 +57,7 @@
     position: absolute;
     bottom: 4px;
     right: 4px;
-    background: #6366f1;
+    background: var(--primary);
     color: white;
     border: none;
     border-radius: 50%;
@@ -67,7 +67,7 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(99,102,241,0.4);
+    box-shadow: 0 2px 8px rgba(109, 40, 217, 0.4);
 }
 
 .profile-title-area {
@@ -104,7 +104,7 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    background: #6366f1;
+    background: var(--primary);
     color: white;
     border: none;
     border-radius: 10px;
@@ -117,9 +117,9 @@
 }
 
 .edit-profile-btn:hover {
-    background: #4f46e5;
+    background: var(--primary-hover);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(99,102,241,0.3);
+    box-shadow: 0 4px 12px rgba(109, 40, 217, 0.3);
 }
 
 .edit-actions {
@@ -153,7 +153,7 @@
     display: flex;
     align-items: center;
     gap: 0.4rem;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    background: linear-gradient(135deg, var(--primary), var(--accent));
     color: white;
     border: none;
     padding: 0.6rem 1.2rem;
@@ -162,12 +162,12 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
-    box-shadow: 0 4px 12px rgba(99,102,241,0.25);
+    box-shadow: 0 4px 12px rgba(109, 40, 217, 0.25);
 }
 
 .save-btn:hover:not(:disabled) {
     transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(99,102,241,0.35);
+    box-shadow: 0 6px 16px rgba(109, 40, 217, 0.35);
 }
 
 .save-btn:disabled,
@@ -279,7 +279,8 @@
 
 .edit-input:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 4px var(--secondary);
+    background: white;
+    box-shadow: 0 0 0 4px rgba(109, 40, 217, 0.1);
 }
 
 /* ── Status Card ── */
@@ -341,7 +342,7 @@
     width: 48px;
     height: 48px;
     border: 4px solid #e2e8f0;
-    border-top-color: #6366f1;
+    border-top-color: var(--primary);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
 }

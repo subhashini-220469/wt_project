@@ -40,15 +40,23 @@ export const apiService = {
             formData.append('resume_data_override', JSON.stringify(resumeDataOverride));
         }
 
-        const res = await fetch(`${API_BASE}/apply/${jobId}`, {
-            method: 'POST',
-            body: formData
-        });
-        if (!res.ok) {
-            const err = await res.json();
-            throw new Error(err.detail || "Application failed");
+        try {
+            const res = await fetch(`${API_BASE}/apply/${jobId}`, {
+                method: 'POST',
+                body: formData
+            });
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.detail || "Application failed");
+            }
+            return res.json();
+        } catch (error) {
+            console.error("Network or Backend Error in ApplyToJob:", error);
+            if (error.message === "Failed to fetch") {
+                throw new Error("Could not connect to the Backend. Please ensure the Python server is running on port 8000.");
+            }
+            throw error;
         }
-        return res.json();
     },
     checkAtsScore: async (jobId, resumeData) => {
         const res = await fetch(`${API_BASE}/rescore/${jobId}`, {

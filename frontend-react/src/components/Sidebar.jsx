@@ -14,10 +14,9 @@ import {
 const Sidebar = ({ activeTab, setActiveTab, userRole, onLogout }) => {
     return (
         <aside className="sidebar">
-            <div className="logo">
-                <Wand2 size={24} />
-                <span>HireAI Pro</span>
-            </div>
+            <NavLink to="/" className="logo">
+                <span className="brand-smart">smart</span><span className="brand-hire">Hire</span>
+            </NavLink>
 
             <div className="role-indicator">
                 <UserCircle size={16} />
