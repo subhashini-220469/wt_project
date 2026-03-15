@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { Sun, Moon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 // Components
@@ -29,6 +29,7 @@ function App() {
     const [selectedJobToApply, setSelectedJobToApply] = useState(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [results, setResults] = useState(null);
+    const navigate = useNavigate();
 
     // Email Automation State
     const [jdsList, setJdsList] = useState([]);
@@ -233,10 +234,11 @@ function App() {
         <div className="app-container">
             {!userRole ? (
                 <Routes>
+                    <Route path="/" element={<HomePage onRoleSelect={() => navigate('/auth')} />} />
                     <Route path="/auth" element={
                         <AuthPage onLoginSuccess={(role) => handleRoleSelect(role === 'hr' ? 'employer' : 'employee')} />
                     } />
-                    <Route path="*" element={<Navigate to="/auth" replace />} />
+                    <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
             ) : (
                 <>
