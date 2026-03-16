@@ -1,20 +1,17 @@
-from pydantic import BaseModel, Field, EmailStr, ConfigDict
+from pydantic import BaseModel, Field, EmailStr
 from typing import List, Optional, Dict
 
-class BaseConfigModel(BaseModel):
-    model_config = ConfigDict(extra='ignore')
-
-class SkillMatch(BaseConfigModel):
+class SkillMatch(BaseModel):
     name: str
     match_type: str  # "exact" or "semantic"
     score: float
 
-class ExperienceDetail(BaseConfigModel):
+class ExperienceDetail(BaseModel):
     years: float
     role_relevance_score: float
     job_description_match: bool
 
-class ResumeData(BaseConfigModel):
+class ResumeData(BaseModel):
     name: str = "Unknown"
     email: Optional[str] = None
     phone: Optional[str] = None
@@ -27,14 +24,14 @@ class ResumeData(BaseConfigModel):
     education_level: str = "Unknown"
     formatting_score: float = 0.0
 
-class JDData(BaseConfigModel):
+class JDData(BaseModel):
     job_title: str
     required_skills: List[str]
     min_experience_years: float
     role_description: str
     education_requirements: str
 
-class ScreeningQuestion(BaseConfigModel):
+class ScreeningQuestion(BaseModel):
     id: str
     category: str
     question: str
@@ -43,11 +40,11 @@ class ScreeningQuestion(BaseConfigModel):
     is_required: bool = True
     is_custom: bool = False
 
-class SalaryInfo(BaseConfigModel):
+class SalaryInfo(BaseModel):
     range: Optional[str] = None
     pay_type: Optional[str] = None  # Yearly, Monthly, Hourly
 
-class JobPosting(BaseConfigModel):
+class JobPosting(BaseModel):
     job_title: str
     company: str
     workplace_type: str  # In Office, Hybrid, Remote
@@ -61,7 +58,7 @@ class JobPosting(BaseConfigModel):
     # For ATS parsing cache
     structured_jd: Optional[JDData] = None
 
-class ScoringResult(BaseConfigModel):
+class ScoringResult(BaseModel):
     total_score: float
     contact_info_score: float
     skills_match_score: float
