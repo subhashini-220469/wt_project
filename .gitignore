@@ -1,4 +1,4 @@
-# Root .gitignore for HireAI project
+# Root .gitignore for SmartHireject
 
 # Environment Variables
 .env

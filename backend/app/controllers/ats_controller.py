@@ -34,7 +34,7 @@ class ATSController:
                 "resume_data": resume_data.model_dump()
             }
         except Exception as e:
-            print(f"❌ Error parsing resume: {e}")
+            print(f"Error parsing resume: {e}")
             raise HTTPException(status_code=500, detail=str(e))
 
     @staticmethod
@@ -89,7 +89,7 @@ class ATSController:
         }
         
         await db.db.resumes.insert_one(resume_record)
-        print(f"✅ Successfully stored application for {name} in 'resumes' collection.")
+        print(f"Successfully stored application for {name} in 'resumes' collection.")
         
         return {
             "message": "Application submitted successfully",

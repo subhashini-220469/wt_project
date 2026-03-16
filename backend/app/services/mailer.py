@@ -20,7 +20,7 @@ class Mailer:
         pw = os.getenv("EMAIL_PASSWORD")
         
         if not user or not pw:
-            print(f"⚠️ Email Credentials Missing. User: {'Set' if user else 'Not set'}, PW: {'Set' if pw else 'Not set'}")
+            print(f"Email Credentials Missing. User: {'Set' if user else 'Not set'}, PW: {'Set' if pw else 'Not set'}")
             return False
 
         message = EmailMessage()
@@ -38,10 +38,10 @@ class Mailer:
                 password=pw,
                 start_tls=True
             )
-            print(f"📧 Email sent successfully to {to_email}")
+            print(f"Email sent successfully to {to_email}")
             return True
         except Exception as e:
-            print(f"❌ Failed to send email to {to_email}: {e}")
+            print(f"Failed to send email to {to_email}: {e}")
             return False
 
     @classmethod
@@ -56,4 +56,4 @@ class Mailer:
             if success:
                 success_count += 1
         
-        print(f"✅ Bulk email task finished: {success_count}/{len(recipients)} sent.")
+        print(f"Bulk email task finished: {success_count}/{len(recipients)} sent.")

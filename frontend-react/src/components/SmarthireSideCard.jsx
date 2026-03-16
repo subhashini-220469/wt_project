@@ -31,7 +31,7 @@ const THEMATIC_IMAGES = [
   }
 ];
 
-const SmarthireSideCard = ({ onPostJob = () => {}, onExplore = () => {} }) => {
+const SmarthireSideCard = ({ onPostJob = () => { }, onExplore = () => { } }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
@@ -42,10 +42,10 @@ const SmarthireSideCard = ({ onPostJob = () => {}, onExplore = () => {} }) => {
   }, []);
 
   return (
-    <aside className="smarthire-sidecard" aria-label="HireAI Pro visual panel">
+    <aside className="smarthire-sidecard" aria-label="SmartHire visual panel">
       <div className="sidecard-content">
         <AnimatePresence mode="wait">
-          <motion.div 
+          <motion.div
             key={THEMATIC_IMAGES[currentIndex].tag}
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
@@ -58,7 +58,7 @@ const SmarthireSideCard = ({ onPostJob = () => {}, onExplore = () => {} }) => {
           </motion.div>
         </AnimatePresence>
 
-        <motion.h1 
+        <motion.h1
           className="sidecard-title"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -66,8 +66,8 @@ const SmarthireSideCard = ({ onPostJob = () => {}, onExplore = () => {} }) => {
         >
           Revolutionizing <span className="title-gradient">AI Hiring</span>
         </motion.h1>
-        
-        <motion.p 
+
+        <motion.p
           className="sidecard-description"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -79,9 +79,9 @@ const SmarthireSideCard = ({ onPostJob = () => {}, onExplore = () => {} }) => {
         <div className="visual-stage">
           <div className="slider-wrapper">
             <AnimatePresence mode="wait">
-              <motion.img 
+              <motion.img
                 key={currentIndex}
-                src={THEMATIC_IMAGES[currentIndex].src} 
+                src={THEMATIC_IMAGES[currentIndex].src}
                 alt={THEMATIC_IMAGES[currentIndex].title}
                 className="generated-thematic-visual"
                 initial={{ opacity: 0, scale: 0.95, x: 50 }}
@@ -92,7 +92,7 @@ const SmarthireSideCard = ({ onPostJob = () => {}, onExplore = () => {} }) => {
             </AnimatePresence>
           </div>
           <div className="visual-overlay"></div>
-          
+
           <div className="progress-container">
             <div className="progress-labels">
               <AnimatePresence mode="wait">
@@ -108,7 +108,7 @@ const SmarthireSideCard = ({ onPostJob = () => {}, onExplore = () => {} }) => {
               <span>Processing</span>
             </div>
             <div className="progress-track">
-              <motion.div 
+              <motion.div
                 className="progress-fill"
                 initial={{ width: "0%" }}
                 animate={{ width: "100%" }}

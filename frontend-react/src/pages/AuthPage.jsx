@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, User, Building, ArrowRight, Briefcase, UserCheck } from 'lucide-react';
+import { Mail, Lock, User, Building, ArrowRight, Briefcase, UserCheck, Zap, Sparkles, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { GoogleLogin } from "@react-oauth/google";
 import axios from "axios";
@@ -33,9 +33,9 @@ const AuthPage = ({ onLoginSuccess }) => {
 
   React.useEffect(() => {
     if (pendingGoogleUser) {
-        document.title = 'Select Role | HireAI Pro';
+      document.title = 'Select Role | SmartHire';
     } else {
-        document.title = isLogin ? 'Sign In | HireAI Pro' : 'Create Account | HireAI Pro';
+      document.title = isLogin ? 'Sign In | SmartHire' : 'Create Account | SmartHire';
     }
   }, [isLogin, pendingGoogleUser]);
 
@@ -54,6 +54,7 @@ const AuthPage = ({ onLoginSuccess }) => {
       );
 
       localStorage.setItem('accessToken', res.data.accessToken);
+      localStorage.setItem('userEmail', res.data.email);
 
       if (res.data.roleRequired) {
         // First-time Google user — show inline role picker
@@ -78,20 +79,23 @@ const AuthPage = ({ onLoginSuccess }) => {
   const handleSetRole = async () => {
     if (!selectedRole) return;
     if (selectedRole === 'hr' && !googleOfficeName.trim()) {
-        setError('Company name is required for HR recruiters');
-        return;
+      setError('Company name is required for HR recruiters');
+      return;
     }
     setRoleLoading(true);
     setError(null);
     try {
       // Use authClient – it attaches the stored access token automatically
       localStorage.setItem('accessToken', pendingGoogleUser.accessToken);
-      const res = await authClient.post('/api/auth/set-role', { 
-          role: selectedRole,
-          officeName: selectedRole === 'hr' ? googleOfficeName : undefined
+      const res = await authClient.post('/api/auth/set-role', {
+        role: selectedRole,
+        officeName: selectedRole === 'hr' ? googleOfficeName : undefined
       });
 
       localStorage.setItem('accessToken', res.data.accessToken);
+      if (res.data.email) {
+        localStorage.setItem('userEmail', res.data.email);
+      }
 
       if (onLoginSuccess) {
         onLoginSuccess(res.data.role);
@@ -148,6 +152,7 @@ const AuthPage = ({ onLoginSuccess }) => {
 
       if (isLogin) {
         localStorage.setItem('accessToken', data.accessToken);
+        localStorage.setItem('userEmail', formData.email);
         if (onLoginSuccess) {
           onLoginSuccess(data.role || 'user');
         }
@@ -269,12 +274,29 @@ const AuthPage = ({ onLoginSuccess }) => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="visual-content"
+            className="visual-content-new"
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}
           >
-            <SmarthireSideCard
-              onPostJob={() => navigate('/post-job')}
-              onExplore={() => alert('Explore features coming soon.')}
-            />
+            <h1 className="welcome-text">welcome</h1>
+            <div className="branding-massive">
+              <span className="brand-smart">smart</span>
+              <span className="brand-hire">Hire</span>
+            </div>
+
+            <div className="visual-features" style={{ display: 'flex', gap: '2.5rem', marginTop: '4rem' }}>
+              <div className="feature-item-pill">
+                <CheckCircle2 size={24} />
+                <span>upload</span>
+              </div>
+              <div className="feature-item-pill">
+                <CheckCircle2 size={24} />
+                <span>get match</span>
+              </div>
+              <div className="feature-item-pill">
+                <CheckCircle2 size={24} />
+                <span>get hired</span>
+              </div>
+            </div>
           </motion.div>
         </div>
 

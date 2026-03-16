@@ -31,16 +31,25 @@ const CandidateApplyPage = ({ job, onBack }) => {
     const [useMaster, setUseMaster] = useState(false);
 
     useEffect(() => {
+        const userEmail = localStorage.getItem('userEmail');
         const saved = localStorage.getItem('candidate_resume_data');
+        
+        let initialEmail = userEmail || '';
+        let initialName = '';
+
         if (saved) {
             const data = JSON.parse(saved);
-            setFormData(prev => ({
-                ...prev,
-                name: prev.name || data.name || '',
-                email: prev.email || data.resume_data?.contact_info?.email || ''
-            }));
+            // Use the flattened structure we established earlier
+            initialName = data.resume_data?.name || data.name || '';
+            initialEmail = data.resume_data?.email || initialEmail;
             setUseMaster(true);
         }
+
+        setFormData(prev => ({
+            ...prev,
+            name: prev.name || initialName,
+            email: prev.email || initialEmail
+        }));
     }, []);
 
     const handleAnswerChange = (qId, value) => {
@@ -250,140 +259,61 @@ const CandidateApplyPage = ({ job, onBack }) => {
     const [activeTab, setActiveTab] = useState('summary');
 
     const renderResult = () => {
-        const scoreColor = result.score >= 80 ? '#10b981' : result.score >= 60 ? '#f59e0b' : '#ef4444';
-        const scoreLabel = result.score >= 80 ? 'EXCELLENT' : result.score >= 60 ? 'GOOD' : 'AVERAGE';
-
         return (
             <div className="apply-step result-step">
                 <motion.div
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    className="analysis-results-container"
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="success-view-container"
+                    style={{ 
+                        textAlign: 'center', 
+                        padding: '4rem 2rem', 
+                        background: 'var(--card-bg)', 
+                        borderRadius: '32px',
+                        border: '1px solid var(--border-color)',
+                        maxWidth: '600px',
+                        margin: '2rem auto'
+                    }}
                 >
-                    <div className="analysis-header-card card">
-                        <div className="header-flex">
-                            <div className="header-info">
-                                <h2>Resume Analysis Results <span className="file-badge">PDF</span></h2>
-                                <p className="text-muted">Instant ATS evaluation for <strong>{job.job_title}</strong></p>
-                            </div>
-                            <div className="big-score-gauge">
-                                <div className="gauge-value" style={{ color: scoreColor }}>{Math.round(result.score)}</div>
-                                <div className="gauge-label" style={{ backgroundColor: scoreColor + '20', color: scoreColor }}>{scoreLabel}</div>
-                                <div className="gauge-sub">ATS Score</div>
-                            </div>
-                        </div>
+                    <div className="success-icon-wrapper" style={{ 
+                        width: '80px', 
+                        height: '80px', 
+                        background: 'rgba(16, 185, 129, 0.1)', 
+                        borderRadius: '100px', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center', 
+                        margin: '0 auto 2rem',
+                        color: '#10b981'
+                    }}>
+                        <CheckCircle2 size={40} />
                     </div>
 
-                    <div className="analysis-tabs">
-                        <button
-                            className={`tab-item ${activeTab === 'summary' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('summary')}
-                        >Summary</button>
-                        <button
-                            className={`tab-item ${activeTab === 'detailed' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('detailed')}
-                        >Detailed Analysis</button>
-                        <button
-                            className={`tab-item ${activeTab === 'improvements' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('improvements')}
-                        >Improvements</button>
+                    <h2 style={{ fontSize: '2.25rem', fontWeight: 850, color: 'var(--text-main)', marginBottom: '1rem', letterSpacing: '-0.04em' }}>
+                        Application <span style={{ color: 'var(--primary)' }}>Successful!</span>
+                    </h2>
+                    
+                    <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', lineHeight: '1.6', marginBottom: '2.5rem' }}>
+                        You have successfully applied to the <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>{job.job_title}</span> role at <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>{job.company}</span>.
+                    </p>
+
+                    <div className="next-steps-info" style={{ 
+                        background: 'var(--secondary)', 
+                        padding: '1.5rem', 
+                        borderRadius: '20px', 
+                        marginBottom: '2.5rem',
+                        textAlign: 'left'
+                    }}>
+                        <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '0.5rem', textTransform: 'uppercase' }}>What happens next?</h4>
+                        <p style={{ fontSize: '0.9rem', color: 'var(--text-main)', opacity: 0.8, margin: 0 }}>
+                            The hiring team will review your application. You can track your real-time status and match score in your dashboard.
+                        </p>
                     </div>
 
-                    <div className="tab-content area">
-                        {activeTab === 'summary' && (
-                            <div className="summary-grid">
-                                <div className="analysis-card result-card card">
-                                    <div className="card-icon"><Users size={20} /></div>
-                                    <div className="card-body">
-                                        <h4>Contact Information</h4>
-                                        <div className="progress-flex">
-                                            <div className="bar-outer"><div className="bar-inner green" style={{ width: `${(result.details.contact_info_score / 15) * 100}%` }}></div></div>
-                                            <span className="score-val">{result.details.contact_info_score}/15</span>
-                                        </div>
-                                        <p className="section-fb">{result.details.feedback?.contact || "Great contact details."}</p>
-                                    </div>
-                                </div>
-
-                                <div className="analysis-card result-card card">
-                                    <div className="card-icon"><Briefcase size={20} /></div>
-                                    <div className="card-body">
-                                        <h4>Work Experience</h4>
-                                        <div className="progress-flex">
-                                            <div className="bar-outer"><div className="bar-inner blue" style={{ width: `${(result.details.experience_score / 30) * 100}%` }}></div></div>
-                                            <span className="score-val">{result.details.experience_score}/30</span>
-                                        </div>
-                                        <p className="section-fb">{result.details.feedback?.experience || "Experience match found."}</p>
-                                    </div>
-                                </div>
-
-                                <div className="analysis-card result-card card">
-                                    <div className="card-icon"><Star size={20} /></div>
-                                    <div className="card-body">
-                                        <h4>Skills Match</h4>
-                                        <div className="progress-flex">
-                                            <div className="bar-outer"><div className="bar-inner purple" style={{ width: `${(result.details.skills_match_score / 20) * 100}%` }}></div></div>
-                                            <span className="score-val">{result.details.skills_match_score}/20</span>
-                                        </div>
-                                        <p className="section-fb">{result.details.feedback?.skills || "Critical skills detected."}</p>
-                                    </div>
-                                </div>
-
-                                <div className="analysis-card result-card card">
-                                    <div className="card-icon"><FileText size={20} /></div>
-                                    <div className="card-body">
-                                        <h4>Education</h4>
-                                        <div className="progress-flex">
-                                            <div className="bar-outer"><div className="bar-inner orange" style={{ width: `${(result.details.education_score / 20) * 100}%` }}></div></div>
-                                            <span className="score-val">{result.details.education_score}/20</span>
-                                        </div>
-                                        <p className="section-fb">{result.details.feedback?.education || "Education requirements met."}</p>
-                                    </div>
-                                </div>
-
-                                <div className="analysis-card result-card card">
-                                    <div className="card-icon"><LayoutList size={20} /></div>
-                                    <div className="card-body">
-                                        <h4>Formatting</h4>
-                                        <div className="progress-flex">
-                                            <div className="bar-outer"><div className="bar-inner teal" style={{ width: `${(result.details.formatting_score / 15) * 100}%` }}></div></div>
-                                            <span className="score-val">{result.details.formatting_score}/15</span>
-                                        </div>
-                                        <p className="section-fb">{result.details.feedback?.formatting || "Consistent formatting detected."}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {activeTab === 'detailed' && (
-                            <div className="detailed-analysis-view card">
-                                <h3>AI Matching Logic Breakdown</h3>
-                                <ul className="points-list">
-                                    <li><CheckCircle2 size={16} className="text-green" /> Point Breakdown: {Math.round(result.details.skills_match_score)} points for skills + {Math.round(result.details.experience_score)} for work history.</li>
-                                    <li><BrainCircuit size={16} className="text-primary" /> Our AI compared your past <strong>{result.details.exp_years} years</strong> of experience against the {job.job_title} role.</li>
-                                    <li><AlertCircle size={16} className="text-muted" /> Note: This score is an automated estimation based on semantic matching.</li>
-                                </ul>
-                            </div>
-                        )}
-
-                        {activeTab === 'improvements' && (
-                            <div className="improvements-view card">
-                                <h3>Personalized Advice</h3>
-                                <div className="advice-grid">
-                                    <div className="advice-item">
-                                        <strong>Skills Recommendation:</strong>
-                                        <p>{result.details.skills_match_score < 15 ? "Our analysis shows you might be missing some specific industry keywords. Try mentioning technologies like 'FastAPI', 'Docker', or 'Microservices' if you have experience with them." : "Your skills are excellently aligned with this JD. No major additions needed."}</p>
-                                    </div>
-                                    <div className="advice-item">
-                                        <strong>Layout Tip:</strong>
-                                        <p>{result.details.formatting_score < 10 ? "Consider using a single-column layout with standard 'Skills' and 'Experience' headers to help the AI parse your data more accurately." : "Your resume layout is perfectly structured and parsed successfully."}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="action-footer mt-4">
-                        <button className="btn btn-outline" onClick={onBack}>Browse More Jobs</button>
+                    <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                        <button className="btn btn-primary" onClick={onBack} style={{ padding: '0.8rem 2rem' }}>
+                            Browse More Jobs
+                        </button>
                     </div>
                 </motion.div>
             </div>
