@@ -40,7 +40,7 @@ const userSchema = new mongoose.Schema(
       type: Date,
     },
   },
-  { timestamps: true, collection: 'users' }
+  { timestamps: true }
 );
 
 const User = mongoose.model("User", userSchema);
