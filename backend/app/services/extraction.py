@@ -114,7 +114,7 @@ class LLMParser:
         {jd_text}
         """
         
-        print(f"🔍 AI is extracting requirements from JD (Length: {len(jd_text)} chars)...")
+        print(f"AI is extracting requirements from JD (Length: {len(jd_text)} chars)...")
 
         headers = {
             "Authorization": f"Bearer {OPENROUTER_API_KEY}",

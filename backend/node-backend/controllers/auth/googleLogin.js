@@ -60,6 +60,7 @@ export const googleLogin = async (req, res) => {
         return res.status(200).json({
             message: "Google login success",
             accessToken,
+            email: user.email,
             role: user.role === "null" ? null : user.role,
             roleRequired: user.role === "null" || user.role == null
         });

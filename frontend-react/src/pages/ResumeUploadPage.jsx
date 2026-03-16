@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, FileText, CheckCircle2, BrainCircuit, Trash2, Zap, Shield, Star } from 'lucide-react';
+import { Upload, FileText, CheckCircle2, BrainCircuit, Trash2, Zap, Shield, Star, MapPin, Mail, Phone, ExternalLink, GraduationCap, Briefcase, Code, User } from 'lucide-react';
 import { apiService } from '../services/api';
 
 const ResumeUploadPage = () => {
@@ -45,10 +45,7 @@ const ResumeUploadPage = () => {
 
     return (
         <div className="resume-page-outer">
-            {/* Animated background blobs */}
-            <div className="blob blob-1" />
-            <div className="blob blob-2" />
-            <div className="blob blob-3" />
+            {/* Removed noisy background blobs */}
 
             <motion.div
                 className="resume-page-inner"
@@ -161,54 +158,117 @@ const ResumeUploadPage = () => {
 
                     {/* Right: Info Cards */}
                     <div className="resume-side-cards">
-                        <motion.div
-                            className="info-card"
-                            initial={{ opacity: 0, x: 30 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.3, duration: 0.5 }}
-                        >
-                            <div className="info-card-icon" style={{ background: 'rgba(59,130,246,0.15)', color: '#60a5fa' }}>
-                                <BrainCircuit size={20} />
-                            </div>
-                            <div>
-                                <h4>How it works</h4>
-                                <ul className="how-list">
-                                    <li>📄 Upload your most recent resume</li>
-                                    <li>🤖 AI extracts your skills & experience</li>
-                                    <li>✅ Click <strong>"Check ATS"</strong> on any job to score yourself</li>
-                                </ul>
-                            </div>
-                        </motion.div>
+                        {!resumeData ? (
+                            <AnimatePresence>
+                                <motion.div
+                                    className="info-card"
+                                    initial={{ opacity: 0, x: 30 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.3, duration: 0.5 }}
+                                >
+                                    <div className="info-card-icon" style={{ background: 'rgba(59,130,246,0.15)', color: '#60a5fa' }}>
+                                        <BrainCircuit size={20} />
+                                    </div>
+                                    <div>
+                                        <h4>How it works</h4>
+                                        <ul className="how-list">
+                                            <li>📄 Upload your most recent resume</li>
+                                            <li>🤖 AI extracts your skills & experience</li>
+                                            <li>✅ Click <strong>"Check ATS"</strong> on any job to score yourself</li>
+                                        </ul>
+                                    </div>
+                                </motion.div>
 
-                        <motion.div
-                            className="info-card"
-                            initial={{ opacity: 0, x: 30 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.4, duration: 0.5 }}
-                        >
-                            <div className="info-card-icon" style={{ background: 'rgba(167,139,250,0.15)', color: '#a78bfa' }}>
-                                <Shield size={20} />
-                            </div>
-                            <div>
-                                <h4>Your data is safe</h4>
-                                <p className="info-card-desc">Your resume is stored locally on your device. We never share your data.</p>
-                            </div>
-                        </motion.div>
+                                <motion.div
+                                    className="info-card"
+                                    initial={{ opacity: 0, x: 30 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.4, duration: 0.5 }}
+                                >
+                                    <div className="info-card-icon" style={{ background: 'rgba(167,139,250,0.15)', color: '#a78bfa' }}>
+                                        <Shield size={20} />
+                                    </div>
+                                    <div>
+                                        <h4>Your data is safe</h4>
+                                        <p className="info-card-desc">Your resume is stored locally on your device. We never share your data.</p>
+                                    </div>
+                                </motion.div>
 
-                        <motion.div
-                            className="info-card"
-                            initial={{ opacity: 0, x: 30 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.5, duration: 0.5 }}
-                        >
-                            <div className="info-card-icon" style={{ background: 'rgba(52,211,153,0.15)', color: '#34d399' }}>
-                                <Star size={20} />
-                            </div>
-                            <div>
-                                <h4>Get matched faster</h4>
-                                <p className="info-card-desc">Candidates with a stored resume get ATS scores instantly without re-uploading.</p>
-                            </div>
-                        </motion.div>
+                                <motion.div
+                                    className="info-card"
+                                    initial={{ opacity: 0, x: 30 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.5, duration: 0.5 }}
+                                >
+                                    <div className="info-card-icon" style={{ background: 'rgba(52,211,153,0.15)', color: '#34d399' }}>
+                                        <Star size={20} />
+                                    </div>
+                                    <div>
+                                        <h4>Get matched faster</h4>
+                                        <p className="info-card-desc">Candidates with a stored resume get ATS scores instantly without re-uploading.</p>
+                                    </div>
+                                </motion.div>
+                            </AnimatePresence>
+                        ) : (
+                            <motion.div
+                                className="resume-data-display"
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                            >
+                                <div className="data-section">
+                                    <h4 className="section-title"><User size={16} /> Identity & Contact</h4>
+                                    <div className="data-grid-mini">
+                                        <div className="data-item-row" style={{ color: 'var(--primary)', fontSize: '1.1rem', marginBottom: '0.5rem' }}>
+                                            <strong>{resumeData.resume_data?.name || resumeData.name}</strong>
+                                        </div>
+                                        {resumeData.resume_data?.email && (
+                                            <div className="data-item-row"><Mail size={14} /> <span>{resumeData.resume_data.email}</span></div>
+                                        )}
+                                        {resumeData.resume_data?.phone && (
+                                            <div className="data-item-row"><Phone size={14} /> <span>{resumeData.resume_data.phone}</span></div>
+                                        )}
+                                        {resumeData.resume_data?.location && (
+                                            <div className="data-item-row"><MapPin size={14} /> <span>{resumeData.resume_data.location}</span></div>
+                                        )}
+                                        {resumeData.resume_data?.linkedin && (
+                                            <div className="data-item-row"><ExternalLink size={14} /> <span>LinkedIn Profile</span></div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="data-section">
+                                    <h4 className="section-title"><BrainCircuit size={16} /> Top Skills</h4>
+                                    <div className="skills-cloud-medium">
+                                        {resumeData.resume_data?.skills?.length > 0 ? (
+                                            resumeData.resume_data.skills.map((s, i) => (
+                                                <span key={i} className="skill-pill-refined">{s}</span>
+                                            ))
+                                        ) : (
+                                            <p className="text-muted">No skills detected</p>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="data-section">
+                                    <h4 className="section-title"><Briefcase size={16} /> Experience Overview</h4>
+                                    <div className="exp-mini-card">
+                                        <div className="exp-total"><strong>{resumeData.resume_data?.experience_years || 0}</strong> years of history detected.</div>
+                                        {resumeData.resume_data?.recent_jobs?.length > 0 && (
+                                            <ul className="recent-jobs-list">
+                                                {resumeData.resume_data.recent_jobs.map((j, i) => (
+                                                    <li key={i}>{j}</li>
+                                                ))}
+                                            </ul>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="data-section">
+                                    <h4 className="section-title"><GraduationCap size={16} /> Education</h4>
+                                    <p className="edu-tag-main">{resumeData.resume_data?.education_level || "Unknown"}</p>
+                                </div>
+                            </motion.div>
+                        )}
                     </div>
                 </div>
             </motion.div>

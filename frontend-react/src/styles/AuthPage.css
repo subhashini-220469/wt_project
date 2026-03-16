@@ -7,23 +7,50 @@
   --emerald-600: #059669;
   --emerald-700: #047857;
   --emerald-900: #064e3b;
-  --bg-dark: #020617; /* Very dark slate for deep contrast */
+  --bg-dark: #020617;
+  /* Very dark slate for deep contrast */
   --bg-card: rgba(15, 23, 42, 0.6);
   --glass-border: rgba(255, 255, 255, 0.08);
   --glass-glow: rgba(16, 185, 129, 0.15);
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
-  --auth-main-bg: #000;
+  --auth-main-bg: #fff;
+  --toggle-link-color: #3b82f6;
+  /* Blue as per screenshot */
 }
 
 .light-mode {
-  --bg-dark: #f8fafc;
-  --bg-card: rgba(255, 255, 255, 0.9);
-  --glass-border: rgba(0, 0, 0, 0.1);
-  --glass-glow: rgba(16, 185, 129, 0.1);
+  --bg-dark: #ffffff;
+  --bg-card: rgba(255, 255, 255, 0.95);
+  --glass-border: rgba(0, 0, 0, 0.05);
+  --glass-glow: rgba(92, 45, 145, 0.05);
   --text-primary: #0f172a;
   --text-secondary: #64748b;
-  --auth-main-bg: #ffffff;
+  --auth-main-bg: #f8fafc;
+}
+
+.auth-container .brand-smart {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #fff;
+  opacity: 1; /* Solid white */
+  letter-spacing: -1px;
+}
+
+.auth-container .brand-hire {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #00bcd4;
+  /* Brighter teal from screenshot */
+  letter-spacing: -1px;
+}
+
+.auth-container .welcome-text {
+  font-size: 4.5rem; /* Increased size */
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: -0.5rem;
+  letter-spacing: -1.5px;
 }
 
 .auth-container {
@@ -43,33 +70,26 @@
 }
 
 /* --- Left Side: Visuals --- */
+/* Clean Solid Dark Background */
 .auth-visuals {
-  flex: 1.2;
-  background: 
-    radial-gradient(at 0% 0%, rgba(6, 78, 59, 0.4) 0, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.2) 0, transparent 50%),
-    var(--bg-dark);
+  flex: 1.1;
+  background: #0f172a; /* Deep Navy */
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 4rem;
   position: relative;
-  overflow: hidden;
-}
-
-.auth-visuals::after {
-  content: '';
-  position: absolute;
-  width: 150%;
-  height: 150%;
-  background: radial-gradient(circle, var(--emerald-900) 0%, transparent 70%);
-  opacity: 0.1;
-  animation: slow-rotate 20s infinite linear;
 }
 
 @keyframes slow-rotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Redesigned Smarthire Side Card */
@@ -83,7 +103,7 @@
   border: 1px solid var(--glass-border);
   border-radius: 48px;
   padding: 3.5rem;
-  box-shadow: 
+  box-shadow:
     0 25px 50px -12px rgba(0, 0, 0, 0.5),
     0 0 40px var(--glass-glow);
   z-index: 10;
@@ -233,7 +253,9 @@
   transform: translateY(-2px);
 }
 
-.feature-pill-icon { color: var(--emerald-500); }
+.feature-pill-icon {
+  color: var(--emerald-500);
+}
 
 /* Sidecard Actions */
 .sidecard-actions {
@@ -285,8 +307,11 @@
   align-items: center;
   justify-content: center;
   background: var(--auth-main-bg);
-  padding: 4rem;
+  padding: 2rem 4rem;
+  /* Reduced vertical padding */
   position: relative;
+  overflow-y: auto;
+  /* Allow scrolling for shorter screens */
 }
 
 .form-wrapper {
@@ -301,15 +326,18 @@
 }
 
 .form-header h2 {
-  font-size: 3rem;
+  font-size: 2rem;
+  /* Scaled down */
   font-weight: 800;
   letter-spacing: -0.04em;
-  margin-bottom: 1rem;
+  margin-bottom: 0.25rem;
+  color: #008ba3; /* Unified with Premium Teal theme */
 }
 
 .form-header p {
   color: var(--text-secondary);
-  font-size: 1.1rem;
+  font-size: 0.95rem;
+  /* Scaled down */
 }
 
 .error-banner {
@@ -332,78 +360,93 @@
 .auth-form-section .input-group {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  background: var(--bg-dark);
-  border: 1px solid var(--glass-border);
-  border-radius: 20px;
-  padding: 0 1.5rem;
+  gap: 0.75rem;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0 1rem;
   transition: all 0.3s;
 }
 
 .auth-form-section .input-group:focus-within {
-  border-color: var(--emerald-500);
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
-  background: #111827;
+  border-color: #008ba3;
+  /* Match new teal button on focus */
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(0, 139, 163, 0.05);
 }
 
 .auth-form-section .input-icon {
-  color: var(--text-secondary);
+  color: #64748b;
+  /* Darker slate for light background */
   flex-shrink: 0;
 }
 
 .auth-form-section .input-group input {
   flex: 1;
-  padding: 1.25rem 0;
+  padding: 0.85rem 0;
+  /* Reduced height */
   border: none;
   background: transparent;
-  font-size: 1rem;
-
-  color: var(--text-primary);
-
-  /* Use a mix of 2 professional colors: deep blue/emerald */
-  background-image: linear-gradient(90deg, #38bdf8, #34d399);
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-  -webkit-text-fill-color: transparent;
-
+  font-size: 0.95rem;
+  color: #000;
   outline: none;
   font-family: inherit;
   font-weight: 600;
+  caret-color: #008ba3; /* Visible teal cursor */
+}
+
+.auth-form-section .input-group input::placeholder {
+  color: #64748b !important;
+  /* Darker/Visible placeholoders */
+  opacity: 0.8;
+  font-weight: 500;
 }
 
 /* Fix for browser autofill overriding background and causing invisible text */
 .auth-form-section .input-group input:-webkit-autofill,
-.auth-form-section .input-group input:-webkit-autofill:hover, 
-.auth-form-section .input-group input:-webkit-autofill:focus, 
+.auth-form-section .input-group input:-webkit-autofill:hover,
+.auth-form-section .input-group input:-webkit-autofill:focus,
 .auth-form-section .input-group input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 30px #0f172a inset !important;
-  -webkit-text-fill-color: #34d399 !important;
+  -webkit-box-shadow: 0 0 0 30px #f1f5f9 inset !important;
+  -webkit-text-fill-color: #000 !important;
   transition: background-color 5000s ease-in-out 0s;
 }
 
+.feature-item-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+  font-weight: 500;
+  font-size: 1.2rem;
+}
+
+.feature-item-pill svg {
+  color: #00bcd4;
+  /* Teal for check circles */
+}
+
 .submit-btn {
-  background: var(--emerald-500);
+  background: #008ba3;
   color: white;
   border: none;
-  padding: 1.25rem;
-  border-radius: 20px;
-  font-size: 1.15rem;
+  padding: 0.9rem;
+  /* Reduced height */
+  border-radius: 10px;
+  font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
   transition: all 0.3s;
-  box-shadow: 0 10px 20px -5px rgba(16, 185, 129, 0.3);
-  margin-top: 1rem;
+  margin-top: 0.5rem;
 }
 
 .submit-btn:hover {
-  background: var(--emerald-600);
-  transform: translateY(-2px);
-  box-shadow: 0 15px 30px -5px rgba(16, 185, 129, 0.4);
+  background: #00768a;
+  transform: translateY(-1px);
 }
 
 .divider {
@@ -416,10 +459,11 @@
   letter-spacing: 0.1em;
 }
 
-.divider::before, .divider::after {
+.divider::before,
+.divider::after {
   content: '';
   flex: 1;
-  border-bottom: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .divider span {
@@ -435,7 +479,7 @@
 .toggle-btn {
   background: transparent;
   border: none;
-  color: var(--emerald-500);
+  color: var(--toggle-link-color);
   font-weight: 700;
   cursor: pointer;
   margin-left: 0.5rem;
@@ -455,32 +499,43 @@
 
 .role-selector label {
   flex: 1;
-  background: var(--bg-dark);
-  padding: 1.25rem;
-  border-radius: 20px;
+  background: #f1f5f9;
+  padding: 0.75rem;
+  /* Reduced height */
+  border-radius: 12px;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
   cursor: pointer;
-  border: 1px solid var(--glass-border);
+  border: 1px solid #e2e8f0;
   transition: all 0.3s;
   font-weight: 600;
+  font-size: 0.9rem;
 }
 
 .role-selector label:has(input:checked) {
-  border-color: var(--emerald-500);
-  background: rgba(16, 185, 129, 0.05);
-  color: var(--emerald-500);
+  border-color: #008ba3;
+  /* Sync with teal button */
+  background: rgba(0, 139, 163, 0.05);
+  color: #008ba3;
 }
 
 /* Responsive */
 @media (max-width: 1100px) {
-  .auth-visuals { flex: 1; padding: 2.5rem; }
-  .sidecard-title { font-size: 3rem; }
+  .auth-visuals {
+    flex: 1;
+    padding: 2.5rem;
+  }
+
+  .sidecard-title {
+    font-size: 3rem;
+  }
 }
 
 @media (max-width: 950px) {
-  .auth-visuals { display: none; }
+  .auth-visuals {
+    display: none;
+  }
 }
 
 .google-btn-wrapper {

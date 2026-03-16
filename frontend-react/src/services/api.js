@@ -106,5 +106,10 @@ export const apiService = {
         const res = await fetch(`${API_BASE}/analytics/jobs`);
         if (!res.ok) throw new Error("Failed to fetch analytics");
         return res.json();
+    },
+    fetchMyApplications: async (email) => {
+        const res = await fetch(`${API_BASE}/my-applications/${email}`);
+        if (!res.ok) throw new Error("Failed to fetch applications");
+        return res.json();
     }
 };
