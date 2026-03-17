@@ -38,6 +38,35 @@ class ATSController:
             raise HTTPException(status_code=500, detail=str(e))
 
     @staticmethod
+    async def get_profile(email: str):
+        try:
+            profile = await db.db.profiles.find_one({"email": email})
+            if profile:
+                profile["_id"] = str(profile["_id"])
+                return profile
+            return None
+        except Exception as e:
+            print(f"Error fetching profile: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+
+    @staticmethod
+    async def upsert_profile(email: str, profile_data: dict):
+        try:
+            # Ensure email is in the data
+            profile_data["email"] = email
+            
+            # Use email as unique identifier for profiles
+            result = await db.db.profiles.update_one(
+                {"email": email},
+                {"$set": profile_data},
+                upsert=True
+            )
+            return {"message": "Profile updated successfully"}
+        except Exception as e:
+            print(f"Error updating profile: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+
+    @staticmethod
     async def apply_to_job(job_id: str, name: str, email: str, file: UploadFile, screening_answers: dict, resume_data_override: dict = None):
         # 1. Fetch Job from DB to get structured_jd
         from bson import ObjectId

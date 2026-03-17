@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Briefcase, Calendar, CheckCircle2, Clock, Search, Filter, ArrowRight, ChevronRight, FileText, BarChart3 } from 'lucide-react';
 import { apiService } from '../services/api';
+import { getResumeData } from '../utils/resumeStorage';
 
 const MyApplicationsPage = () => {
     const [applications, setApplications] = useState([]);
@@ -13,14 +14,11 @@ const MyApplicationsPage = () => {
     useEffect(() => {
         // Use the resume's email (same one submitted with applications)
         // Fall back to login email only if no resume is saved
-        const savedResume = localStorage.getItem('candidate_resume_data');
+        const savedResume = getResumeData();
         let lookupEmail = localStorage.getItem('userEmail');
 
         if (savedResume) {
-            try {
-                const parsed = JSON.parse(savedResume);
-                lookupEmail = parsed.resume_data?.email || lookupEmail;
-            } catch (e) { /* ignore parse errors */ }
+            lookupEmail = savedResume.resume_data?.email || lookupEmail;
         }
 
         if (!lookupEmail) {
