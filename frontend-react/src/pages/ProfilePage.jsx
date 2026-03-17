@@ -3,7 +3,7 @@ import { User, Mail, Building, Briefcase, Camera, Edit2, Save, X } from 'lucide-
 import authClient from '../services/authClient';
 import '../styles/ProfilePage.css';
 
-const ProfilePage = () => {
+const ProfilePage = ({ onProfileUpdate }) => {
     const [profile, setProfile] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -48,6 +48,7 @@ const ProfilePage = () => {
             setProfile(res.data.user);
             setIsEditing(false);
             setSuccess('Profile updated successfully!');
+            if (onProfileUpdate) onProfileUpdate(res.data.user.username);
             setTimeout(() => setSuccess(''), 3000);
             
         } catch (err) {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, User, Building, ArrowRight, Briefcase, UserCheck, Zap, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Mail, Lock, User, Building, ArrowRight, Briefcase, UserCheck, Zap, Sparkles, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { GoogleLogin } from "@react-oauth/google";
 import axios from "axios";
@@ -21,7 +21,9 @@ const AuthPage = ({ onLoginSuccess }) => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // State for first-time Google users who need to pick a role
   const [pendingGoogleUser, setPendingGoogleUser] = useState(null); // { accessToken }
@@ -112,6 +114,7 @@ const AuthPage = ({ onLoginSuccess }) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccess(null);
 
     // Manual client-side validation (noValidate disables browser tooltips)
     if (!formData.email.trim()) {
@@ -146,9 +149,28 @@ const AuthPage = ({ onLoginSuccess }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch (parseError) {
+        throw new Error('Server returned an invalid response. Please try again later.');
+      }
 
-      if (!res.ok) throw new Error(data.error || data.errors?.[0]?.message || 'Authentication failed');
+      if (!res.ok) {
+        // Detailed error parsing
+        let errorMessage = 'Authentication failed. Please check your credentials.';
+        
+        if (data.errors && Array.isArray(data.errors)) {
+          // It's a Zod Validation Error; combine the messages
+          errorMessage = data.errors.map(err => err.message).join(', ');
+        } else if (data.error) {
+          errorMessage = data.error;
+        } else if (data.message) {
+          errorMessage = data.message;
+        }
+        
+        throw new Error(errorMessage);
+      }
 
       if (isLogin) {
         localStorage.setItem('accessToken', data.accessToken);
@@ -159,7 +181,7 @@ const AuthPage = ({ onLoginSuccess }) => {
         navigate('/');
       } else {
         setIsLogin(true);
-        alert("Account created successfully! Please sign in.");
+        setSuccess("Account created successfully! Please sign in.");
       }
     } catch (err) {
       setError(err.message);
@@ -171,6 +193,7 @@ const AuthPage = ({ onLoginSuccess }) => {
   const toggleMode = () => {
     setIsLogin(!isLogin);
     setError(null);
+    setSuccess(null);
   };
 
   // ── Role Selection Screen (first-time Google users) ──────────────────────
@@ -235,15 +258,21 @@ const AuthPage = ({ onLoginSuccess }) => {
                     initial={{ opacity: 0, height: 0, marginTop: 0 }}
                     animate={{ opacity: 1, height: 'auto', marginTop: 24 }}
                     exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                    className="input-group"
+                    className="input-wrapper"
+                    style={{ width: '100%' }}
                   >
-                    <Building className="input-icon" size={18} />
-                    <input
-                      type="text"
-                      placeholder="Enter Company Name"
-                      value={googleOfficeName}
-                      onChange={(e) => setGoogleOfficeName(e.target.value)}
-                    />
+                    <label style={{ display: 'block', marginBottom: '0.6rem', fontSize: '0.9rem', fontWeight: '700', color: '#0f172a', textAlign: 'left' }}>
+                      Company / Office Name
+                    </label>
+                    <div className="input-group">
+                      <Building className="input-icon" size={18} />
+                      <input
+                        type="text"
+                        placeholder="Enter Company Name"
+                        value={googleOfficeName}
+                        onChange={(e) => setGoogleOfficeName(e.target.value)}
+                      />
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -314,6 +343,12 @@ const AuthPage = ({ onLoginSuccess }) => {
               </motion.div>
             )}
 
+            {success && (
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="success-banner">
+                {success}
+              </motion.div>
+            )}
+
             <form onSubmit={handleSubmit} className="auth-form" noValidate>
               <AnimatePresence mode="popLayout">
                 {!isLogin && (
@@ -365,17 +400,23 @@ const AuthPage = ({ onLoginSuccess }) => {
                           initial={{ opacity: 0, height: 0, marginTop: 0 }}
                           animate={{ opacity: 1, height: 'auto', marginTop: 10 }}
                           exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                          className="input-group"
+                          className="input-wrapper"
+                          style={{ width: '100%' }}
                         >
-                          <Building className="input-icon" size={18} />
-                          <input
-                            type="text"
-                            name="officeName"
-                            placeholder="Company Name"
-                            required={formData.role === 'hr'}
-                            value={formData.officeName}
-                            onChange={handleInputChange}
-                          />
+                          <label style={{ display: 'block', marginBottom: '0.6rem', fontSize: '0.9rem', fontWeight: '700', color: '#0f172a', textAlign: 'left' }}>
+                            Company / Office Name
+                          </label>
+                          <div className="input-group">
+                            <Building className="input-icon" size={18} />
+                            <input
+                              type="text"
+                              name="officeName"
+                              placeholder="Enter Company Name"
+                              required={formData.role === 'hr'}
+                              value={formData.officeName}
+                              onChange={handleInputChange}
+                            />
+                          </div>
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -398,13 +439,26 @@ const AuthPage = ({ onLoginSuccess }) => {
               <div className="input-group">
                 <Lock className="input-icon" size={18} />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   name="password"
                   placeholder="Password"
                   required
                   value={formData.password}
                   onChange={handleInputChange}
                 />
+                <button 
+                  type="button" 
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="password-toggle-btn"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 0 }}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? (
+                    <EyeOff size={18} style={{ color: '#64748b' }} />
+                  ) : (
+                    <Eye size={18} style={{ color: '#64748b' }} />
+                  )}
+                </button>
               </div>
 
 

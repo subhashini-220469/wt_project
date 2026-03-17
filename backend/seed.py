@@ -78,6 +78,9 @@ async def seed_data():
         {
             "jd_id": python_job_id,
             "job_title": "Senior Python Developer",
+            "candidate_name": "Alice Sharma",
+            "candidate_email": "alice@example.com",
+            "filename": "alice_resume.pdf",
             "status": "interviewed",
             "applied_at": datetime.utcnow().isoformat(),
             "resume_data": {"name": "Alice Sharma", "email": "alice@example.com", "skills": ["Python", "FastAPI", "Docker"]},
@@ -86,6 +89,9 @@ async def seed_data():
         {
             "jd_id": python_job_id,
             "job_title": "Senior Python Developer",
+            "candidate_name": "Bob Singh",
+            "candidate_email": "bob@example.com",
+            "filename": "bob_resume.pdf",
             "status": "applied",
             "applied_at": datetime.utcnow().isoformat(),
             "resume_data": {"name": "Bob Singh", "email": "bob@example.com", "skills": ["Java", "SQL"]},
@@ -94,6 +100,9 @@ async def seed_data():
         {
             "jd_id": frontend_job_id,
             "job_title": "Frontend React Engineer",
+            "candidate_name": "David Gupta",
+            "candidate_email": "david@example.com",
+            "filename": "david_resume.pdf",
             "status": "applied",
             "applied_at": datetime.utcnow().isoformat(),
             "resume_data": {"name": "David Gupta", "email": "david@example.com", "skills": ["React", "CSS", "Vite"]},

@@ -11,8 +11,19 @@ const MyApplicationsPage = () => {
     const [statusFilter, setStatusFilter] = useState('all');
 
     useEffect(() => {
-        const userEmail = localStorage.getItem('userEmail');
-        if (!userEmail) {
+        // Use the resume's email (same one submitted with applications)
+        // Fall back to login email only if no resume is saved
+        const savedResume = localStorage.getItem('candidate_resume_data');
+        let lookupEmail = localStorage.getItem('userEmail');
+
+        if (savedResume) {
+            try {
+                const parsed = JSON.parse(savedResume);
+                lookupEmail = parsed.resume_data?.email || lookupEmail;
+            } catch (e) { /* ignore parse errors */ }
+        }
+
+        if (!lookupEmail) {
             setError("No user email found. Please sign in again.");
             setLoading(false);
             return;
@@ -20,7 +31,7 @@ const MyApplicationsPage = () => {
 
         const loadApps = async () => {
             try {
-                const data = await apiService.fetchMyApplications(userEmail);
+                const data = await apiService.fetchMyApplications(lookupEmail);
                 setApplications(data);
             } catch (err) {
                 setError("Failed to load your applications. Please try again later.");

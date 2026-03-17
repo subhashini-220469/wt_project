@@ -33,7 +33,7 @@ const CandidateApplyPage = ({ job, onBack }) => {
     useEffect(() => {
         const userEmail = localStorage.getItem('userEmail');
         const saved = localStorage.getItem('candidate_resume_data');
-        
+
         let initialEmail = userEmail || '';
         let initialName = '';
 
@@ -41,7 +41,8 @@ const CandidateApplyPage = ({ job, onBack }) => {
             const data = JSON.parse(saved);
             // Use the flattened structure we established earlier
             initialName = data.resume_data?.name || data.name || '';
-            initialEmail = data.resume_data?.email || initialEmail;
+            // Use resume email first — this is what gets submitted with the application
+            initialEmail = data.resume_data?.email || userEmail || '';
             setUseMaster(true);
         }
 
@@ -265,24 +266,24 @@ const CandidateApplyPage = ({ job, onBack }) => {
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     className="success-view-container"
-                    style={{ 
-                        textAlign: 'center', 
-                        padding: '4rem 2rem', 
-                        background: 'var(--card-bg)', 
+                    style={{
+                        textAlign: 'center',
+                        padding: '4rem 2rem',
+                        background: 'var(--card-bg)',
                         borderRadius: '32px',
                         border: '1px solid var(--border-color)',
                         maxWidth: '600px',
                         margin: '2rem auto'
                     }}
                 >
-                    <div className="success-icon-wrapper" style={{ 
-                        width: '80px', 
-                        height: '80px', 
-                        background: 'rgba(16, 185, 129, 0.1)', 
-                        borderRadius: '100px', 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center', 
+                    <div className="success-icon-wrapper" style={{
+                        width: '80px',
+                        height: '80px',
+                        background: 'rgba(16, 185, 129, 0.1)',
+                        borderRadius: '100px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
                         margin: '0 auto 2rem',
                         color: '#10b981'
                     }}>
@@ -292,15 +293,15 @@ const CandidateApplyPage = ({ job, onBack }) => {
                     <h2 style={{ fontSize: '2.25rem', fontWeight: 850, color: 'var(--text-main)', marginBottom: '1rem', letterSpacing: '-0.04em' }}>
                         Application <span style={{ color: 'var(--primary)' }}>Successful!</span>
                     </h2>
-                    
+
                     <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', lineHeight: '1.6', marginBottom: '2.5rem' }}>
                         You have successfully applied to the <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>{job.job_title}</span> role at <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>{job.company}</span>.
                     </p>
 
-                    <div className="next-steps-info" style={{ 
-                        background: 'var(--secondary)', 
-                        padding: '1.5rem', 
-                        borderRadius: '20px', 
+                    <div className="next-steps-info" style={{
+                        background: 'var(--secondary)',
+                        padding: '1.5rem',
+                        borderRadius: '20px',
                         marginBottom: '2.5rem',
                         textAlign: 'left'
                     }}>

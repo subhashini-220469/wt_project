@@ -51,6 +51,11 @@ class ATSController:
         
         jd_data = JDData(**jd_data_dict)
 
+        # 2a. Check for duplicate application
+        existing_app = await db.db.resumes.find_one({"jd_id": job_id, "candidate_email": email})
+        if existing_app:
+            raise HTTPException(status_code=400, detail="You have already applied for this position.")
+
         # 2. Get Resume Data (either from file or from override)
         if resume_data_override:
             resume_data = ResumeData(**resume_data_override)

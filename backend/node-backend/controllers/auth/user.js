@@ -19,9 +19,14 @@ export const signup = async (req, res) => {
 
     } catch (e) {
         if (e.name === "ZodError") {
-            return res.status(400).json({ errors: e.errors })
+            const issues = e.issues || e.errors || [];
+            const formattedErrors = issues.map(err => ({
+                path: err.path ? err.path.join('.') : '',
+                message: err.message
+            }));
+            return res.status(400).json({ errors: formattedErrors.length ? formattedErrors : [{ message: e.message }] })
         }
-        res.status(500).json({ error: "Server error" })
+        res.status(500).json({ error: "Server error: " + e.message })
     }
 }
 export const signin = async (req, res) => {
