@@ -10,6 +10,7 @@ import {
     UserCircle,
     FileText
 } from 'lucide-react';
+import { NavLink } from 'react-router-dom';
 
 const Sidebar = ({ activeTab, setActiveTab, userRole, onLogout }) => {
     return (
