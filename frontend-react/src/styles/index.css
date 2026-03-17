@@ -218,7 +218,71 @@ body {
 .header-right {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 1.25rem;
+}
+
+/* Premium Header Avatar */
+.user-profile-shortcut {
+    cursor: pointer;
+    position: relative;
+    padding: 2px;
+    border-radius: 12px;
+    background: transparent;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.user-profile-shortcut:hover {
+    transform: translateY(-2px);
+}
+
+.avatar-square {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.1rem;
+    letter-spacing: 0.02em;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 
+        0 4px 12px rgba(0, 139, 163, 0.2),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.initials-avatar {
+    background: linear-gradient(135deg, #008ba3 0%, #00bcd4 100%);
+}
+
+.user-profile-shortcut:hover .avatar-square {
+    box-shadow: 
+        0 8px 20px rgba(0, 139, 163, 0.3),
+        0 0 0 2px rgba(0, 188, 212, 0.4);
+}
+
+/* Subtle shine effect on hover */
+.avatar-square::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent 45%,
+        rgba(255, 255, 255, 0.1) 50%,
+        transparent 55%
+    );
+    transition: all 0.6s ease;
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+}
+
+.user-profile-shortcut:hover .avatar-square::after {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
 }
 
 .theme-toggle {
@@ -967,42 +1031,87 @@ input:focus, textarea:focus {
     margin-bottom: 0.5rem;
 }
 
-/* Post Job Page */
+/* Post Job Page - Clean Modern Restyle */
 .post-job-container {
-    max-width: 800px;
-    margin: 0 auto;
+    max-width: 900px;
+    margin: 2rem auto 4rem;
+    position: relative;
+    z-index: 10;
+}
+
+/* Base Card Styling - Crisp & Professional */
+.post-job-content.card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05); /* Soft, grounded shadow */
+    border-radius: 24px;
+    padding: 3rem;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Subtle top gradient bar for premium feel */
+.post-job-content.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
 }
 
 .step-indicator {
     display: flex;
     justify-content: center;
-    gap: 1.5rem;
-    margin-bottom: 2rem;
+    gap: 3rem;
+    margin-bottom: 2.5rem;
+    position: relative;
+}
+
+/* Connect dots with a line */
+.step-indicator::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    height: 3px;
+    width: 60%;
+    background: #e2e8f0;
+    z-index: -1;
+    border-radius: 2px;
 }
 
 .step-dot {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
-    background: #e2e8f0;
+    background: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    color: var(--text-muted);
-    transition: all 0.3s ease;
-    border: 3px solid transparent;
+    font-size: 1.1rem;
+    color: #94a3b8;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 3px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
 .step-dot.active {
     background: var(--primary);
     color: #fff;
-    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 6px rgba(0, 188, 212, 0.15), 0 10px 15px -3px rgba(0, 188, 212, 0.3);
+    transform: scale(1.1);
 }
 
 .step-dot.completed {
     background: var(--success);
     color: #fff;
+    border-color: var(--success);
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
 }
 
 .form-grid {
@@ -1016,7 +1125,7 @@ input:focus, textarea:focus {
     grid-column: span 2;
 }
 
-.input-group label {
+.post-job-container .input-group label {
     display: block;
     font-size: 0.85rem;
     font-weight: 600;
@@ -1024,22 +1133,38 @@ input:focus, textarea:focus {
     color: var(--text-main);
 }
 
-.input-group input,
-.input-group select,
-.input-group textarea {
+.post-job-container .input-group input,
+.post-job-container .input-group select,
+.post-job-container .input-group textarea {
     width: 100%;
-    padding: 0.75rem 1rem;
-    border: 1px solid var(--border-color);
+    padding: 0.85rem 1.25rem;
+    border: 1px solid #e2e8f0;
     border-radius: 12px;
     font-size: 0.95rem;
-    background: #fcfcfd;
-    /* Use a mix of 2 brighter professional colors (cyan/emerald) for high visibility */
-    background-image: linear-gradient(90deg, #38bdf8, #34d399);
-    background-clip: text;
-    -webkit-background-clip: text;
-    color: transparent;
-    -webkit-text-fill-color: transparent;
+    background: #f8fafc; /* Very soft light gray base */
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02); /* Slight inset for depth */
+    color: #0f172a;
+    -webkit-text-fill-color: #0f172a;
     font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.post-job-container .input-group input:focus,
+.post-job-container .input-group select:focus,
+.post-job-container .input-group textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: #ffffff; /* Pop to pure white on focus */
+    box-shadow: 0 0 0 4px rgba(0, 188, 212, 0.1), inset 0 1px 2px rgba(0,0,0,0.02); /* Clean, unobtrusive glowing ring */
+    transform: translateY(-2px); /* Slight lift */
+}
+
+/* Ensure placeholder text is visible but distinct */
+.post-job-container .input-group input::placeholder,
+.post-job-container .input-group textarea::placeholder {
+    color: #94a3b8;
+    -webkit-text-fill-color: #94a3b8;
+    font-weight: 500;
 }
 
 .step-footer {

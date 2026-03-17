@@ -119,6 +119,23 @@ function App() {
         }
     }, [selectedJd]);
 
+    // Profile State
+    const [profileName, setProfileName] = useState(() => localStorage.getItem('userName') || 'User');
+
+    // Fetch Profile on mount/login
+    useEffect(() => {
+        if (userRole) {
+            authClient.get('/api/user/profile')
+                .then(res => {
+                    if (res.data?.username) {
+                        setProfileName(res.data.username);
+                        localStorage.setItem('userName', res.data.username);
+                    }
+                })
+                .catch(err => console.error("Failed to fetch profile initials", err));
+        }
+    }, [userRole]);
+
     // Update document title dynamically based on active tab
     useEffect(() => {
         const titles = {
@@ -234,6 +251,7 @@ function App() {
         }
         localStorage.removeItem('accessToken');
         localStorage.removeItem('userRole');
+        localStorage.removeItem('userName');
         setUserRole(null);
         navigate('/');
     };
@@ -246,6 +264,15 @@ function App() {
     const handleViewAnalytics = (job) => {
         setSelectedJd(job);
         setActiveTab('automation');
+    };
+
+    const getInitials = (name) => {
+        if (!name) return '??';
+        const parts = name.split(' ');
+        if (parts.length >= 2) {
+            return (parts[0][0] + parts[1][0]).toUpperCase();
+        }
+        return name.slice(0, 2).toUpperCase();
     };
 
     return (
@@ -297,29 +324,10 @@ function App() {
                                                                         'Email Automation'}
                                     </h1>
                                     <div className="header-right">
-                                        <motion.button
-                                            className="theme-toggle"
-                                            onClick={toggleTheme}
-                                            aria-label="Toggle Theme"
-                                            whileHover={{ scale: 1.1 }}
-                                            whileTap={{ scale: 0.9 }}
-                                            initial={false}
-                                            animate={{ rotate: isDarkMode ? 0 : 180 }}
-                                        >
-                                            <AnimatePresence mode="wait" initial={false}>
-                                                <motion.div
-                                                    key={isDarkMode ? 'sun' : 'moon'}
-                                                    initial={{ opacity: 0, scale: 0.5, rotate: -45 }}
-                                                    animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                                                    exit={{ opacity: 0, scale: 0.5, rotate: 45 }}
-                                                    transition={{ duration: 0.2 }}
-                                                >
-                                                    {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-                                                </motion.div>
-                                            </AnimatePresence>
-                                        </motion.button>
-                                        <div className="user-profile">
-                                            <img src={`https://ui-avatars.com/api/?name=HR+Admin&background=6366f1&color=fff`} alt="Profile" />
+                                        <div className="user-profile-shortcut" onClick={() => setActiveTab('profile')}>
+                                            <div className="avatar-square initials-avatar">
+                                                {getInitials(profileName)}
+                                            </div>
                                         </div>
                                     </div>
                                 </header>
@@ -368,7 +376,7 @@ function App() {
                                             </>
                                         )}
 
-                                        {activeTab === 'profile' && <ProfilePage />}
+                                        {activeTab === 'profile' && <ProfilePage onProfileUpdate={(newName) => setProfileName(newName)} />}
                                     </AnimatePresence>
                                 </div>
                             </main>

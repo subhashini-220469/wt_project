@@ -25,101 +25,125 @@
 }
 
 .profile-cover {
-    height: 140px;
-    background: linear-gradient(135deg, #0f172a, #008ba3, #00bcd4);
+    height: 180px;
+    background: linear-gradient(135deg, #0f172a 0%, #008ba3 50%, #00bcd4 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.profile-cover::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top right, rgba(0, 188, 212, 0.2), transparent);
 }
 
 .profile-avatar-section {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
-    padding: 0 2rem 1.75rem;
+    gap: 2rem;
+    padding: 0 2.5rem 2.5rem;
     flex-wrap: wrap;
 }
 
 .avatar-wrapper {
     position: relative;
-    margin-top: -50px;
+    margin-top: -60px;
     flex-shrink: 0;
+    background: #fff;
+    padding: 4px;
+    border-radius: 50%;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 }
 
 .profile-avatar {
-    width: 100px;
-    height: 100px;
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
-    border: 4px solid var(--card-bg);
-    box-shadow: var(--glass-shadow);
+    border: 2px solid rgba(0, 188, 212, 0.1);
     object-fit: cover;
     display: block;
 }
 
 .avatar-edit-btn {
     position: absolute;
-    bottom: 4px;
-    right: 4px;
+    bottom: 8px;
+    right: 8px;
     background: #008ba3;
     color: white;
-    border: none;
+    border: 2px solid #fff;
     border-radius: 50%;
-    width: 28px;
-    height: 28px;
+    width: 34px;
+    height: 34px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 139, 163, 0.4);
+    box-shadow: 0 4px 12px rgba(0, 139, 163, 0.4);
+    transition: all 0.2s;
+}
+
+.avatar-edit-btn:hover {
+    transform: scale(1.1);
+    background: #00bcd4;
 }
 
 .profile-title-area {
     flex: 1;
-    margin-top: 4px;
+    margin-top: 10px;
 }
 
 .profile-title-area h2 {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: var(--text-main);
-    margin-bottom: 0.4rem;
+    font-size: 1.85rem;
+    font-weight: 850;
+    color: #111827;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
 }
 
 .role-badge {
-    display: inline-block;
-    padding: 3px 12px;
-    border-radius: 20px;
-    font-size: 0.78rem;
-    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 16px;
+    border-radius: 100px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 .role-hr {
-    background: #ede9fe;
+    background: #f5f3ff;
     color: #7c3aed;
+    border: 1px solid #ddd6fe;
 }
 
 .role-user {
-    background: #e0f2fe;
+    background: #f0f9ff;
     color: #0284c7;
+    border: 1px solid #bae6fd;
 }
 
 .edit-profile-btn {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    background: var(--primary);
+    gap: 0.75rem;
+    background: #111827;
     color: white;
     border: none;
-    border-radius: 10px;
-    padding: 0.6rem 1.2rem;
-    font-size: 0.9rem;
-    font-weight: 600;
+    border-radius: 12px;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 700;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     margin-left: auto;
 }
 
 .edit-profile-btn:hover {
-    background: var(--primary-hover);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 139, 163, 0.3);
+    background: #1f2937;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
 .edit-actions {
