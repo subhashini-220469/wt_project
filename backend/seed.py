@@ -14,12 +14,20 @@ client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_URL)
 db = client[DATABASE_NAME]
 
 async def seed_data():
-    print(f"🚀 Seeding test data into '{DATABASE_NAME}'...")
+    print(f"🚀 Checking if seeding is needed for '{DATABASE_NAME}'...")
     
-    # 1. Clear existing jobs/resumes for clean testing
-    await db.jobs.delete_many({})
-    await db.resumes.delete_many({})
-    await db.jds.delete_many({}) # Clear legacy jds too
+    # Only seed if no jobs exist, to avoid accidental data loss on every restart
+    existing_count = await db.jobs.count_documents({})
+    if existing_count > 0:
+        print("✨ Database already has records. Use --force to seed anyway (not implemented) or clear manually.")
+        return
+
+    print("🌱 Database is empty. Starting seed process...")
+    
+    # 1. We keep these commented out or removed so we don't accidentally wipe user data
+    # await db.jobs.delete_many({})
+    # await db.resumes.delete_many({})
+    # await db.jds.delete_many({}) 
     
     # 2. Sample Jobs
     jobs = [

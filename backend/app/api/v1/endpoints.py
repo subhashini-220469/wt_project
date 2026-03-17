@@ -71,6 +71,17 @@ async def get_all_jds():
 async def parse_resume(file: UploadFile = File(...)):
     return await ATSController.parse_resume(file)
 
+@router.get("/profiles/{email}")
+async def get_profile(email: str):
+    profile = await ATSController.get_profile(email)
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    return profile
+
+@router.post("/profiles/{email}")
+async def upsert_profile(email: str, profile_data: dict):
+    return await ATSController.upsert_profile(email, profile_data)
+
 @router.post("/apply/{job_id}")
 async def apply_to_job(
     job_id: str,

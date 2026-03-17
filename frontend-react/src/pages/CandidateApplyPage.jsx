@@ -17,6 +17,7 @@ import {
     FileCheck
 } from 'lucide-react';
 import { apiService } from '../services/api';
+import { getResumeData } from '../utils/resumeStorage';
 
 const CandidateApplyPage = ({ job, onBack }) => {
     const [step, setStep] = useState(1); // 1: Questions, 2: Upload, 3: Result
@@ -31,26 +32,39 @@ const CandidateApplyPage = ({ job, onBack }) => {
     const [useMaster, setUseMaster] = useState(false);
 
     useEffect(() => {
-        const userEmail = localStorage.getItem('userEmail');
-        const saved = localStorage.getItem('candidate_resume_data');
+        const loadInitialData = async () => {
+            const userEmail = localStorage.getItem('userEmail');
+            let saved = getResumeData();
 
-        let initialEmail = userEmail || '';
-        let initialName = '';
+            // Fallback: Try recovering from DB if local is empty but we have an email
+            if (!saved && userEmail) {
+                try {
+                    const dbProfile = await apiService.getProfile(userEmail);
+                    if (dbProfile) {
+                        saved = dbProfile;
+                        // Don't save to local here to keep it clean, or do it for consistency
+                        // import { saveResumeData } from '../utils/resumeStorage';
+                    }
+                } catch (e) { /* silent fail */ }
+            }
 
-        if (saved) {
-            const data = JSON.parse(saved);
-            // Use the flattened structure we established earlier
-            initialName = data.resume_data?.name || data.name || '';
-            // Use resume email first — this is what gets submitted with the application
-            initialEmail = data.resume_data?.email || userEmail || '';
-            setUseMaster(true);
-        }
+            let initialEmail = userEmail || '';
+            let initialName = '';
 
-        setFormData(prev => ({
-            ...prev,
-            name: prev.name || initialName,
-            email: prev.email || initialEmail
-        }));
+            if (saved) {
+                initialName = saved.resume_data?.name || saved.name || '';
+                initialEmail = saved.resume_data?.email || userEmail || '';
+                setUseMaster(true);
+            }
+
+            setFormData(prev => ({
+                ...prev,
+                name: prev.name || initialName,
+                email: prev.email || initialEmail
+            }));
+        };
+
+        loadInitialData();
     }, []);
 
     const handleAnswerChange = (qId, value) => {
@@ -75,8 +89,8 @@ const CandidateApplyPage = ({ job, onBack }) => {
         try {
             let resumeDataOverride = null;
             if (useMaster) {
-                const saved = JSON.parse(localStorage.getItem('candidate_resume_data'));
-                resumeDataOverride = saved.resume_data;
+                const saved = getResumeData();
+                resumeDataOverride = saved?.resume_data;
             }
 
             const res = await apiService.applyToJob(

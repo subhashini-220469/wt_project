@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, FileText, CheckCircle2, BrainCircuit, Trash2, Zap, Shield, Star, MapPin, Mail, Phone, ExternalLink, GraduationCap, Briefcase, Code, User } from 'lucide-react';
 import { apiService } from '../services/api';
+import { getResumeData, saveResumeData, clearResumeData } from '../utils/resumeStorage';
 
 const ResumeUploadPage = () => {
     const [resumeData, setResumeData] = useState(null);
@@ -9,10 +10,30 @@ const ResumeUploadPage = () => {
     const [status, setStatus] = useState('idle');
 
     useEffect(() => {
-        const saved = localStorage.getItem('candidate_resume_data');
-        if (saved) {
-            setResumeData(JSON.parse(saved));
-        }
+        const loadInitialData = async () => {
+            // Priority 1: LocalStorage (Fastest)
+            const saved = getResumeData();
+            if (saved) {
+                setResumeData(saved);
+                return;
+            }
+
+            // Priority 2: Database (Recovery)
+            const email = localStorage.getItem('userEmail');
+            if (email) {
+                try {
+                    const dbProfile = await apiService.getProfile(email);
+                    if (dbProfile) {
+                        saveResumeData(dbProfile);
+                        setResumeData(dbProfile);
+                    }
+                } catch (e) {
+                    console.error("Failed to recover profile from DB", e);
+                }
+            }
+        };
+
+        loadInitialData();
     }, []);
 
     const handleFileUpload = async (e) => {
@@ -25,7 +46,15 @@ const ResumeUploadPage = () => {
         try {
             const res = await apiService.parseResume(file);
             if (res.resume_data) {
-                localStorage.setItem('candidate_resume_data', JSON.stringify(res));
+                // Save locally for speed
+                saveResumeData(res);
+                
+                // Save to DB for persistence
+                const email = localStorage.getItem('userEmail') || res.resume_data.email;
+                if (email) {
+                    await apiService.saveProfile(email, res);
+                }
+
                 setResumeData(res);
                 setStatus('success');
             }
@@ -38,7 +67,7 @@ const ResumeUploadPage = () => {
     };
 
     const clearResume = () => {
-        localStorage.removeItem('candidate_resume_data');
+        clearResumeData();
         setResumeData(null);
         setStatus('idle');
     };

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Search, MapPin, Clock, DollarSign, Briefcase, ChevronRight, Filter, BrainCircuit, CheckCircle2 } from 'lucide-react';
 import { apiService } from '../services/api';
+import { getResumeData } from '../utils/resumeStorage';
 
 const JobDiscoveryPage = ({ onApply }) => {
     const [jobs, setJobs] = useState([]);
@@ -27,14 +28,21 @@ const JobDiscoveryPage = ({ onApply }) => {
         // Load user's existing applications to mark already-applied jobs
         const loadAppliedJobs = async () => {
             try {
-                const savedResume = localStorage.getItem('candidate_resume_data');
                 let lookupEmail = localStorage.getItem('userEmail');
+                const savedResume = getResumeData();
+                
                 if (savedResume) {
+                    lookupEmail = savedResume.resume_data?.email || lookupEmail;
+                } else if (lookupEmail) {
+                    // Try to recover profile from DB if local is empty
                     try {
-                        const parsed = JSON.parse(savedResume);
-                        lookupEmail = parsed.resume_data?.email || lookupEmail;
-                    } catch (e) { /* ignore parse errors */ }
+                        const dbProfile = await apiService.getProfile(lookupEmail);
+                        if (dbProfile) {
+                            lookupEmail = dbProfile.resume_data?.email || lookupEmail;
+                        }
+                    } catch (e) { /* silent fail for recovery */ }
                 }
+
                 if (!lookupEmail) return;
 
                 const apps = await apiService.fetchMyApplications(lookupEmail);
@@ -47,13 +55,12 @@ const JobDiscoveryPage = ({ onApply }) => {
     }, []);
 
     const handleQuickScore = async (jobId) => {
-        const saved = localStorage.getItem('candidate_resume_data');
-        if (!saved) {
+        const candidateInfo = getResumeData();
+        if (!candidateInfo) {
             alert("Please upload your Master Resume first in the 'My Resume' tab to use this feature.");
             return;
         }
 
-        const candidateInfo = JSON.parse(saved);
         setScoringFor(jobId);
 
         try {

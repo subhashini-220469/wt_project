@@ -111,5 +111,19 @@ export const apiService = {
         const res = await fetch(`${API_BASE}/my-applications/${email}`);
         if (!res.ok) throw new Error("Failed to fetch applications");
         return res.json();
+    },
+    getProfile: async (email) => {
+        const res = await fetch(`${API_BASE}/profiles/${email}`);
+        if (!res.ok) return null; // Handle 404 gracefully
+        return res.json();
+    },
+    saveProfile: async (email, profileData) => {
+        const res = await fetch(`${API_BASE}/profiles/${email}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(profileData)
+        });
+        if (!res.ok) throw new Error("Failed to save profile to database");
+        return res.json();
     }
 };
