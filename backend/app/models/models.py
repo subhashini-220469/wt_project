@@ -55,6 +55,7 @@ class JobPosting(BaseModel):
     screening_questions: List[ScreeningQuestion] = []
     status: str = "open"  # open, closed
     deadline: Optional[str] = None
+    posted_by: Optional[str] = None # User ID or Email of the HR who posted
     # For ATS parsing cache
     structured_jd: Optional[JDData] = None
 

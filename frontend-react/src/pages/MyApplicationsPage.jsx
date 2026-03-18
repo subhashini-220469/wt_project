@@ -119,17 +119,17 @@ const MyApplicationsPage = () => {
                             />
                         </div>
                         <div className="status-pills" style={{ display: 'flex', gap: '0.5rem' }}>
-                            {['all', 'applied', 'shortlisted', 'interviewed'].map(status => (
+                            {['applied'].map(status => (
                                 <button
                                     key={status}
-                                    onClick={() => setStatusFilter(status)}
+                                    onClick={() => setStatusFilter('all')}
                                     style={{
                                         padding: '0.6rem 1.25rem',
                                         borderRadius: '100px',
                                         border: '1px solid',
-                                        borderColor: statusFilter === status ? 'var(--primary)' : 'var(--border-color)',
-                                        background: statusFilter === status ? 'var(--primary)' : 'var(--card-bg)',
-                                        color: statusFilter === status ? '#fff' : 'var(--text-main)',
+                                        borderColor: 'var(--primary)',
+                                        background: 'var(--primary)',
+                                        color: '#fff',
                                         fontSize: '0.85rem',
                                         fontWeight: 600,
                                         cursor: 'pointer',

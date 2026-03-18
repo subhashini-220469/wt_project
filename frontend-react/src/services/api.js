@@ -1,13 +1,15 @@
 const API_BASE = "http://localhost:8000";
 
 export const apiService = {
-    fetchJds: async () => {
-        const res = await fetch(`${API_BASE}/jds`);
+    fetchJds: async (posted_by) => {
+        const url = posted_by ? `${API_BASE}/jds?posted_by=${posted_by}` : `${API_BASE}/jds`;
+        const res = await fetch(url);
         if (!res.ok) throw new Error("Failed to fetch JDs");
         return res.json();
     },
-    fetchJobs: async () => {
-        const res = await fetch(`${API_BASE}/jobs`);
+    fetchJobs: async (posted_by) => {
+        const url = posted_by ? `${API_BASE}/jobs?posted_by=${posted_by}` : `${API_BASE}/jobs`;
+        const res = await fetch(url);
         if (!res.ok) throw new Error("Failed to fetch jobs");
         return res.json();
     },
@@ -102,8 +104,9 @@ export const apiService = {
         if (!res.ok) throw new Error("Failed to update status");
         return res.json();
     },
-    fetchAnalytics: async () => {
-        const res = await fetch(`${API_BASE}/analytics/jobs`);
+    fetchAnalytics: async (posted_by) => {
+        const url = posted_by ? `${API_BASE}/analytics/jobs?posted_by=${posted_by}` : `${API_BASE}/analytics/jobs`;
+        const res = await fetch(url);
         if (!res.ok) throw new Error("Failed to fetch analytics");
         return res.json();
     },
