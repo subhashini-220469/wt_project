@@ -41,7 +41,7 @@ const AutomationPage = ({
                                     onClick={() => setSelectedJd(jd)}
                                 >
                                     <div>
-                                        <h4>{jd.structured_data?.job_title || "Untitled Job"}</h4>
+                                        <h4>{jd.job_title || jd.structured_jd?.job_title || "Untitled Job"}</h4>
                                         <span className="jd-info-span">{formatDate(jd.created_at)}</span>
                                     </div>
                                     <ChevronRight size={16} />
@@ -62,7 +62,7 @@ const AutomationPage = ({
                             <div className="automation-header-top">
                                 <div className="header-info">
                                     <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Candidate Outreach</h2>
-                                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>JD: <strong>{selectedJd.structured_data?.job_title}</strong></p>
+                                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>JD: <strong>{selectedJd.job_title || selectedJd.structured_jd?.job_title}</strong></p>
                                 </div>
                                 <button
                                     className="btn btn-outline"

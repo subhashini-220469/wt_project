@@ -14,18 +14,22 @@ import {
 } from 'lucide-react';
 import { apiService } from '../services/api';
 
-const ManagedJobsPage = ({ onViewAnalytics }) => {
+const ManagedJobsPage = ({ onViewAnalytics, userId }) => {
     const [jobs, setJobs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [deletingJobId, setDeletingJobId] = useState(null);
 
     useEffect(() => {
-        fetchJobs();
-    }, []);
+        if (userId) {
+            fetchJobs();
+        }
+    }, [userId]);
 
     const fetchJobs = async () => {
         try {
-            const data = await apiService.fetchJobs();
+            const data = await apiService.fetchJobs(userId);
             setJobs(data);
         } catch (err) {
             console.error("Error fetching jobs:", err);
@@ -44,11 +48,18 @@ const ManagedJobsPage = ({ onViewAnalytics }) => {
         }
     };
 
-    const handleDelete = async (jobId) => {
-        if (!window.confirm("Are you sure you want to delete this job and all its applications?")) return;
+    const handleDeleteRequest = (jobId) => {
+        setDeletingJobId(jobId);
+        setShowDeleteConfirm(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!deletingJobId) return;
         try {
-            await apiService.deleteJob(jobId);
-            setJobs(prev => prev.filter(j => j._id !== jobId));
+            await apiService.deleteJob(deletingJobId);
+            setJobs(prev => prev.filter(j => j._id !== deletingJobId));
+            setShowDeleteConfirm(false);
+            setDeletingJobId(null);
         } catch (err) {
             alert("Failed to delete job: " + err.message);
         }
@@ -129,7 +140,7 @@ const ManagedJobsPage = ({ onViewAnalytics }) => {
                                         </button>
                                         <button
                                             className="btn btn-sm btn-outline text-red"
-                                            onClick={() => handleDelete(job._id)}
+                                            onClick={() => handleDeleteRequest(job._id)}
                                         >
                                             <Trash2 size={16} />
                                         </button>
@@ -146,6 +157,50 @@ const ManagedJobsPage = ({ onViewAnalytics }) => {
                     </tbody>
                 </table>
             </div>
+
+            {showDeleteConfirm && (
+                <div className="modal-overlay">
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="modal-content" 
+                        style={{ maxWidth: '400px', textAlign: 'center' }}
+                    >
+                        <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'center' }}>
+                            <div style={{ 
+                                backgroundColor: '#fee2e2', 
+                                padding: '1rem', 
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}>
+                                <Trash2 size={32} style={{ color: '#dc2626' }} />
+                            </div>
+                        </div>
+                        <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Delete Job?</h3>
+                        <p className="text-muted" style={{ marginBottom: '2rem', lineHeight: '1.5' }}>
+                            Are you sure you want to delete this job and all its applications? This action cannot be undone.
+                        </p>
+                        <div className="modal-footer" style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                            <button 
+                                className="btn btn-outline" 
+                                style={{ flex: 1 }}
+                                onClick={() => setShowDeleteConfirm(false)}
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                className="btn btn-primary" 
+                                style={{ flex: 1, backgroundColor: '#dc2626', border: 'none' }}
+                                onClick={confirmDelete}
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
         </div>
     );
 };

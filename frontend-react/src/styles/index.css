@@ -1798,6 +1798,13 @@ input:focus, textarea:focus {
     grid-template-columns: 1fr 320px;
     gap: 2rem;
     align-items: start;
+    transition: all 0.4s ease;
+}
+
+.resume-page-inner.has-data .resume-two-col {
+    grid-template-columns: 1fr;
+    max-width: 1000px;
+    margin: 0 auto;
 }
 
 /* Upload Card */
@@ -1987,6 +1994,18 @@ input:focus, textarea:focus {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+}
+
+.data-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .data-row {
+        grid-template-columns: 1fr;
+    }
 }
 
 .data-section {

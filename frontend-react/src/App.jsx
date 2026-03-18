@@ -34,6 +34,8 @@ function App() {
     const [selectedJobToApply, setSelectedJobToApply] = useState(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [results, setResults] = useState(null);
+    const [profileName, setProfileName] = useState(() => localStorage.getItem('userName') || 'User');
+    const [userId, setUserId] = useState(() => localStorage.getItem('userId') || null);
     const navigate = useNavigate();
 
     // Secondary check on mount to ensure fully authenticated
@@ -89,12 +91,24 @@ function App() {
 
     // Fetch JDs for Automation Tab
     useEffect(() => {
-        if (activeTab === 'automation') {
-            apiService.fetchJds()
+        if (activeTab === 'automation' && userId) {
+            apiService.fetchJds(userId)
                 .then(data => setJdsList(data))
                 .catch(err => console.error("Failed to fetch JDs", err));
         }
-    }, [activeTab]);
+    }, [activeTab, userId]);
+
+    // Clear Outreach selection if job is deleted or list updated
+    useEffect(() => {
+        if (selectedJd) {
+            const stillExists = jdsList.some(j => j._id === selectedJd._id);
+            if (!stillExists) {
+                setSelectedJd(null);
+                setCandidatesForJd([]);
+                setSelectedCandidates([]);
+            }
+        }
+    }, [jdsList, selectedJd]);
 
     // Fetch Candidates when a JD is selected
     useEffect(() => {
@@ -119,8 +133,6 @@ function App() {
         }
     }, [selectedJd]);
 
-    // Profile State
-    const [profileName, setProfileName] = useState(() => localStorage.getItem('userName') || 'User');
 
     // Fetch Profile on mount/login
     useEffect(() => {
@@ -130,6 +142,10 @@ function App() {
                     if (res.data?.username) {
                         setProfileName(res.data.username);
                         localStorage.setItem('userName', res.data.username);
+                    }
+                    if (res.data?._id) {
+                        setUserId(res.data._id);
+                        localStorage.setItem('userId', res.data._id);
                     }
                 })
                 .catch(err => console.error("Failed to fetch profile initials", err));
@@ -231,7 +247,7 @@ function App() {
 
     const handlePostJob = async (jobData) => {
         try {
-            await apiService.postJob(jobData);
+            await apiService.postJob({ ...jobData, posted_by: userId });
             // After posting, we could refresh a job list if we had one
         } catch (error) {
             throw error;
@@ -337,8 +353,8 @@ function App() {
                                         {userRole === 'employer' && (
                                             <>
                                                 {activeTab === 'post-job' && <PostJobPage onJobPosted={handlePostJob} />}
-                                                {activeTab === 'managed-jobs' && <ManagedJobsPage onViewAnalytics={handleViewAnalytics} />}
-                                                {activeTab === 'dashboard' && <DashboardPage results={results} />}
+                                                {activeTab === 'managed-jobs' && <ManagedJobsPage onViewAnalytics={handleViewAnalytics} userId={userId} />}
+                                                {activeTab === 'dashboard' && <DashboardPage results={results} userId={userId} />}
                                                 {activeTab === 'automation' && (
                                                     <AutomationPage
                                                         jdsList={jdsList}

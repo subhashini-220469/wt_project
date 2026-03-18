@@ -77,7 +77,7 @@ const ResumeUploadPage = () => {
             {/* Removed noisy background blobs */}
 
             <motion.div
-                className="resume-page-inner"
+                className={`resume-page-inner ${resumeData ? 'has-data' : ''}`}
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
@@ -244,37 +244,39 @@ const ResumeUploadPage = () => {
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
                             >
-                                <div className="data-section">
-                                    <h4 className="section-title"><User size={16} /> Identity & Contact</h4>
-                                    <div className="data-grid-mini">
-                                        <div className="data-item-row" style={{ color: 'var(--primary)', fontSize: '1.1rem', marginBottom: '0.5rem' }}>
-                                            <strong>{resumeData.resume_data?.name || resumeData.name}</strong>
+                                <div className="data-row">
+                                    <div className="data-section">
+                                        <h4 className="section-title"><User size={16} /> Identity & Contact</h4>
+                                        <div className="data-grid-mini">
+                                            <div className="data-item-row" style={{ color: 'var(--primary)', fontSize: '1.1rem', marginBottom: '0.5rem' }}>
+                                                <strong>{resumeData.resume_data?.name || resumeData.name}</strong>
+                                            </div>
+                                            {resumeData.resume_data?.email && (
+                                                <div className="data-item-row"><Mail size={14} /> <span>{resumeData.resume_data.email}</span></div>
+                                            )}
+                                            {resumeData.resume_data?.phone && (
+                                                <div className="data-item-row"><Phone size={14} /> <span>{resumeData.resume_data.phone}</span></div>
+                                            )}
+                                            {resumeData.resume_data?.location && (
+                                                <div className="data-item-row"><MapPin size={14} /> <span>{resumeData.resume_data.location}</span></div>
+                                            )}
+                                            {resumeData.resume_data?.linkedin && (
+                                                <div className="data-item-row"><ExternalLink size={14} /> <span>LinkedIn Profile</span></div>
+                                            )}
                                         </div>
-                                        {resumeData.resume_data?.email && (
-                                            <div className="data-item-row"><Mail size={14} /> <span>{resumeData.resume_data.email}</span></div>
-                                        )}
-                                        {resumeData.resume_data?.phone && (
-                                            <div className="data-item-row"><Phone size={14} /> <span>{resumeData.resume_data.phone}</span></div>
-                                        )}
-                                        {resumeData.resume_data?.location && (
-                                            <div className="data-item-row"><MapPin size={14} /> <span>{resumeData.resume_data.location}</span></div>
-                                        )}
-                                        {resumeData.resume_data?.linkedin && (
-                                            <div className="data-item-row"><ExternalLink size={14} /> <span>LinkedIn Profile</span></div>
-                                        )}
                                     </div>
-                                </div>
 
-                                <div className="data-section">
-                                    <h4 className="section-title"><BrainCircuit size={16} /> Top Skills</h4>
-                                    <div className="skills-cloud-medium">
-                                        {resumeData.resume_data?.skills?.length > 0 ? (
-                                            resumeData.resume_data.skills.map((s, i) => (
-                                                <span key={i} className="skill-pill-refined">{s}</span>
-                                            ))
-                                        ) : (
-                                            <p className="text-muted">No skills detected</p>
-                                        )}
+                                    <div className="data-section">
+                                        <h4 className="section-title"><BrainCircuit size={16} /> Top Skills</h4>
+                                        <div className="skills-cloud-medium">
+                                            {resumeData.resume_data?.skills?.length > 0 ? (
+                                                resumeData.resume_data.skills.map((s, i) => (
+                                                    <span key={i} className="skill-pill-refined">{s}</span>
+                                                ))
+                                            ) : (
+                                                <p className="text-muted">No skills detected</p>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
 

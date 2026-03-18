@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { apiService } from '../services/api';
 
-const DashboardPage = () => {
+const DashboardPage = ({ userId }) => {
     const [stats, setStats] = useState([]);
     const [loading, setLoading] = useState(true);
     const [overall, setOverall] = useState({ total_applied: 0, total_selected: 0, total_interviews: 0 });
@@ -27,13 +27,15 @@ const DashboardPage = () => {
     const [fetchingCandidates, setFetchingCandidates] = useState(false);
 
     useEffect(() => {
-        loadData();
-    }, []);
+        if (userId) {
+            loadData();
+        }
+    }, [userId]);
 
     const loadData = async () => {
         setLoading(true);
         try {
-            const data = await apiService.fetchAnalytics();
+            const data = await apiService.fetchAnalytics(userId);
             setStats(data);
 
             const totals = data.reduce((acc, curr) => ({

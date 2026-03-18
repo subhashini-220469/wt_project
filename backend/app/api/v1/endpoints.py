@@ -26,8 +26,11 @@ async def create_job(job_post: JobPosting):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/jobs")
-async def get_jobs():
-    cursor = db.db.jobs.find({})
+async def get_jobs(posted_by: str | None = None):
+    query = {}
+    if posted_by:
+        query["posted_by"] = posted_by
+    cursor = db.db.jobs.find(query)
     jobs = await cursor.to_list(length=100)
     for j in jobs:
         j["_id"] = str(j["_id"])
@@ -57,9 +60,12 @@ async def get_my_applications(email: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/jds")
-async def get_all_jds():
+async def get_all_jds(posted_by: str | None = None):
     # Keep this for backward compatibility or general list
-    cursor = db.db.jds.find({})
+    query = {}
+    if posted_by:
+        query["posted_by"] = posted_by
+    cursor = db.db.jobs.find(query)
     jds = await cursor.to_list(length=100)
     for j in jds:
         id_obj = ObjectId(j["_id"])
@@ -154,10 +160,14 @@ class EmailRequest(BaseModel):
     body: str
 
 @router.get("/analytics/jobs")
-async def get_job_analytics():
+async def get_job_analytics(posted_by: str | None = None):
     try:
-        # Get all jobs
-        cursor = db.db.jobs.find({})
+        # Get jobs filtered by HR
+        query = {}
+        if posted_by:
+            query["posted_by"] = posted_by
+            
+        cursor = db.db.jobs.find(query)
         jobs = await cursor.to_list(length=100)
         
         analytics = []
