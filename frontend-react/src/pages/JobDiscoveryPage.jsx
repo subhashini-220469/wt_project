@@ -16,7 +16,7 @@ const JobDiscoveryPage = ({ onApply }) => {
         const fetchJobs = async () => {
             try {
                 const data = await apiService.fetchJobs();
-                setJobs(data.filter(j => j.status === 'open'));
+                setJobs(data.filter(j => j.status === 'open' || j.status === 'expired'));
             } catch (err) {
                 console.error("Error fetching jobs:", err);
             } finally {
@@ -189,6 +189,19 @@ const JobDiscoveryPage = ({ onApply }) => {
                                             }}
                                         >
                                             <CheckCircle2 size={16} /> Already Applied
+                                        </button>
+                                    ) : job.status === 'expired' ? (
+                                        <button
+                                            className="btn"
+                                            disabled
+                                            style={{
+                                                background: 'var(--border-color)',
+                                                color: 'var(--text-muted)',
+                                                cursor: 'not-allowed',
+                                                fontWeight: 700
+                                            }}
+                                        >
+                                            Expired
                                         </button>
                                     ) : (
                                         <button className="btn btn-primary" onClick={() => onApply(job)}>

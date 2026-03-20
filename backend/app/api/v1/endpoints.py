@@ -73,6 +73,28 @@ async def get_all_jds(posted_by: str | None = None):
         j["created_at"] = id_obj.generation_time.isoformat()
     return jds
 
+@router.get("/jobs")
+async def get_jobs():
+    cursor = db.db.jobs.find({})
+    jobs = await cursor.to_list(length=100)
+    now = datetime.datetime.utcnow()
+    
+    for j in jobs:
+        j["_id"] = str(j["_id"])
+        
+        # Check if job deadline has passed
+        if j.get("status") == "open" and "deadline" in j and j["deadline"]:
+            try:
+                deadline_dt = datetime.datetime.strptime(str(j["deadline"]), "%Y-%m-%d")
+                # Add 1 day so that it expires at 11:59:59 PM of the deadline date
+                expiry_dt = deadline_dt + datetime.timedelta(days=1)
+                if now >= expiry_dt:
+                    j["status"] = "expired"
+            except Exception:
+                pass
+                
+    return jobs
+
 @router.post("/parse-resume")
 async def parse_resume(file: UploadFile = File(...)):
     return await ATSController.parse_resume(file)
