@@ -6,7 +6,7 @@ const NotificationsDropdown = ({ userRole, onApplyJob, onViewJob }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [notifications, setNotifications] = useState([]);
     const dropdownRef = useRef(null);
-    
+
     // Track read notification IDs in localStorage
     const [readNotifs, setReadNotifs] = useState(() => {
         try {
@@ -92,7 +92,7 @@ const NotificationsDropdown = ({ userRole, onApplyJob, onViewJob }) => {
                         ) : (
                             unreadNotifications.map((notif, idx) => {
                                 const notifId = notif.job._id + notif.type;
-                                
+
                                 return (
                                     <div className="notification-item" key={notifId}>
                                         <div className="notification-icon">
@@ -108,7 +108,7 @@ const NotificationsDropdown = ({ userRole, onApplyJob, onViewJob }) => {
                                             <p className="notification-meta">
                                                 {notif.type === 'new_job' ? `📅 Posted: ${notif.time_str}` : `⚠️ Hurry up!`}
                                             </p>
-                                            
+
                                             <div className="notification-footer-actions">
                                                 {notif.type === 'new_job' ? (
                                                     <button className="notification-action-btn" onClick={() => {
@@ -129,7 +129,7 @@ const NotificationsDropdown = ({ userRole, onApplyJob, onViewJob }) => {
                                                         Apply Now <ChevronRight size={14} />
                                                     </button>
                                                 )}
-                                                
+
                                                 <button className="mark-item-read-link" onClick={(e) => markAsRead(e, notifId)}>
                                                     Mark as read
                                                 </button>
