@@ -3,8 +3,16 @@ from sentence_transformers import SentenceTransformer, util
 from typing import Dict, Any, List
 from ..models.models import ResumeData, JDData, ScoringResult
 
-# Initialize model (MiniLM)
-model = SentenceTransformer('all-MiniLM-L6-v2')
+# Lazy load model to prevent server hang during download
+_model = None
+
+def _get_model():
+    global _model
+    if _model is None:
+        print("[WAIT] Loading SentenceTransformer model (may take time on first run)...")
+        _model = SentenceTransformer('all-MiniLM-L6-v2')
+        print("[OK] SentenceTransformer model loaded.")
+    return _model
 
 EDUCATION_LEVELS = {
     "PhD": 4,
@@ -44,8 +52,8 @@ class ScoringEngine:
         matched = []
         missing = []
         
-        jd_embeddings = model.encode(jd_skills_lower)
-        res_embeddings = model.encode(resume_skills_lower) if resume_skills_lower else []
+        jd_embeddings = _get_model().encode(jd_skills_lower)
+        res_embeddings = _get_model().encode(resume_skills_lower) if resume_skills_lower else []
         
         if len(res_embeddings) > 0:
             cos_sim = util.cos_sim(res_embeddings, jd_embeddings)
@@ -59,9 +67,11 @@ class ScoringEngine:
             missing = jd_skills
 
         score = (len(matched) / len(jd_skills)) * 20.0
-        feedback = f"Matched {len(matched)} skills: {', '.join(matched[:5])}{'...' if len(matched)>5 else ''}. "
+        feedback = f"Match Score: {len(matched)}/{len(jd_skills)} skills found. "
         if missing:
-            feedback += f"Missing critical skills like: {', '.join(missing[:3])}."
+            feedback += f"\nYour resume is missing these skills: {', '.join(missing[:5])}. Consider adding them to your profile."
+        else:
+            feedback += "Perfect skill alignment! Your background matches all core requirements."
         
         return min(20.0, float(score)), feedback
 
@@ -73,8 +83,8 @@ class ScoringEngine:
             if not resume.projects:
                 return 0.0, "No relevant projects found. Freshers need at least 2-3 projects to qualify."
             
-            project_embeddings = model.encode(resume.projects)
-            jd_role_embedding = model.encode([jd.role_description])
+            project_embeddings = _get_model().encode(resume.projects)
+            jd_role_embedding = _get_model().encode([jd.role_description])
             cos_sim = util.cos_sim(project_embeddings, jd_role_embedding)
             avg_relevance = cos_sim.mean().item()
             
@@ -90,16 +100,18 @@ class ScoringEngine:
             time_score = (min(resume.experience_years, jd.min_experience_years * 2) / jd.min_experience_years) * 15.0 if jd.min_experience_years > 0 else 15.0
             time_score = min(15.0, time_score)
             
-            job_embeddings = model.encode(resume.recent_jobs)
-            jd_role_embedding = model.encode([jd.role_description])
+            job_embeddings = _get_model().encode(resume.recent_jobs)
+            jd_role_embedding = _get_model().encode([jd.role_description])
             cos_sim = util.cos_sim(job_embeddings, jd_role_embedding)
             max_relevance = cos_sim.max().item()
             role_score = max_relevance * 15.0
             
             total = min(30.0, float(time_score + role_score))
             feedback = f"Found {resume.experience_years} years exp vs {jd.min_experience_years} required. "
-            if max_relevance < 0.6: feedback += "Work history relevance is low."
-            else: feedback += "Previous roles demonstrate highly relevant background."
+            if max_relevance < 0.6: 
+                feedback += "\n[TIP] Add measurable achievements (e.g., 'Increased efficiency by 20%') and use more keywords from the JD."
+            else: 
+                feedback += "Previous roles demonstrate highly relevant background. Great job highlighting your impact with specific achievements."
             return total, feedback
 
     @staticmethod

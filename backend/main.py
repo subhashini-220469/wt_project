@@ -15,8 +15,6 @@ mongo_uri = os.getenv("MONGO_URL")
 if not mongo_uri:
     raise RuntimeError("MONGO_URL not set in .env")
 
-client = MongoClient(mongo_uri)
-db = client.get_database()
 
 if __name__ == "__main__":
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
