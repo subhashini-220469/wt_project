@@ -1,5 +1,5 @@
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, BackgroundTasks
-from typing import List
+from typing import List, Optional
 from ...controllers.ats_controller import ATSController
 from ...db.database import db
 from ...services.mailer import Mailer
@@ -26,7 +26,7 @@ async def create_job(job_post: JobPosting):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/jobs")
-async def get_jobs(posted_by: str | None = None):
+async def get_jobs(posted_by: Optional[str] = None):
     query = {}
     if posted_by:
         query["posted_by"] = posted_by
@@ -60,7 +60,7 @@ async def get_my_applications(email: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/jds")
-async def get_all_jds(posted_by: str | None = None):
+async def get_all_jds(posted_by: Optional[str] = None):
     # Keep this for backward compatibility or general list
     query = {}
     if posted_by:
@@ -160,7 +160,7 @@ class EmailRequest(BaseModel):
     body: str
 
 @router.get("/analytics/jobs")
-async def get_job_analytics(posted_by: str | None = None):
+async def get_job_analytics(posted_by: Optional[str] = None):
     try:
         # Get jobs filtered by HR
         query = {}
