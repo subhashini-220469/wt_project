@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Briefcase,
@@ -17,29 +17,82 @@ import {
 
 const PostJobPage = ({ onJobPosted }) => {
     const [step, setStep] = useState(1);
-    const [formData, setFormData] = useState({
-        job_title: '',
-        company: '',
-        workplace_type: 'In Office',
-        location: '',
-        job_type: 'Full-time',
-        description: '',
-        salary: { range: '', pay_type: 'Yearly' },
-        screening_questions: [
-            {
-                id: 'q-default-availability',
-                category: 'Availability',
-                question: 'Please confirm your availability for this job. If not available immediately, how early would you be able to join?',
-                input_type: 'long_text',
-                is_required: true,
-                is_custom: false
+    const [formData, setFormData] = useState(() => {
+        const saved = localStorage.getItem('postJobFormData');
+        if (saved) {
+            try {
+                return JSON.parse(saved);
+            } catch (e) {
+                console.error("Failed to parse saved form data", e);
             }
-        ],
-        status: 'open',
-        deadline: ''
+        }
+        return {
+            job_title: '',
+            company: '',
+            workplace_type: 'In Office',
+            location: '',
+            job_type: 'Full-time',
+            description: '',
+            salary: { range: '', pay_type: 'Yearly' },
+            screening_questions: [
+                {
+                    id: 'q-default-availability',
+                    category: 'Availability',
+                    question: 'Please confirm your availability for this job. If not available immediately, how early would you be able to join?',
+                    input_type: 'long_text',
+                    is_required: true,
+                    is_custom: false
+                }
+            ],
+            status: 'open',
+            deadline: ''
+        };
     });
 
+    // Auto-save form data on change
+    useEffect(() => {
+        localStorage.setItem('postJobFormData', JSON.stringify(formData));
+    }, [formData]);
+
+    // Cleanup storage on successful submission (in handleSubmit later)
+
+    const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const validateStep = (s) => {
+        let newErrors = {};
+        if (s === 1) {
+            if (!formData.job_title.trim()) newErrors.job_title = "Job Title is required";
+            if (!formData.company.trim()) newErrors.company = "Company Name is required";
+            if (!formData.location.trim()) newErrors.location = "Job Location is required";
+            if (!formData.description.trim()) {
+                newErrors.description = "Job Description is required";
+            }
+            
+            if (formData.deadline) {
+                const today = new Date().toISOString().split('T')[0];
+                if (formData.deadline < today) {
+                    newErrors.deadline = "Deadline cannot be in the past";
+                }
+            }
+        }
+        if (s === 3) {
+            formData.screening_questions.forEach((q, idx) => {
+                if (!q.question.trim()) {
+                    newErrors[`q_${q.id}`] = "Question text cannot be empty";
+                }
+            });
+        }
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleNextStep = () => {
+        if (validateStep(step)) {
+            setStep(step + 1);
+        }
+    };
+
 
     const commonQuestions = [
         { category: 'Cover Letter', question: 'Please provide a cover letter.', type: 'long_text' },
@@ -52,7 +105,16 @@ const PostJobPage = ({ onJobPosted }) => {
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+        // Clear error when user types
+        if (errors[name]) {
+            setErrors(prev => {
+                const newErrs = { ...prev };
+                delete newErrs[name];
+                return newErrs;
+            });
+        }
     };
+
 
     const handleSalaryChange = (e) => {
         const { name, value } = e.target;
@@ -94,9 +156,22 @@ const PostJobPage = ({ onJobPosted }) => {
     };
 
     const handleSubmit = async () => {
+        // Final validation
+        if (!validateStep(1)) {
+            setStep(1);
+            return;
+        }
+
         setIsSubmitting(true);
         try {
-            await onJobPosted(formData);
+            const cleanData = {
+                ...formData,
+                job_title: formData.job_title.trim(),
+                company: formData.company.trim(),
+                location: formData.location.trim()
+            };
+            await onJobPosted(cleanData);
+            localStorage.removeItem('postJobFormData'); // Clear progress on success
             setStep(4); // Success step
         } catch (error) {
             alert("Error posting job: " + error.message);
@@ -105,6 +180,7 @@ const PostJobPage = ({ onJobPosted }) => {
         }
     };
 
+
     const renderStep1 = () => (
         <div className="form-step">
             <div className="card-header">
@@ -112,28 +188,33 @@ const PostJobPage = ({ onJobPosted }) => {
                 <h2>Basic Job Information</h2>
             </div>
             <div className="form-grid">
-                <div className="input-group">
+                <div className={`input-group ${errors.job_title ? 'error' : ''}`}>
                     <label>Job Title*</label>
                     <input
                         type="text"
                         name="job_title"
+                        className={errors.job_title ? 'error' : ''}
                         value={formData.job_title}
                         onChange={handleInputChange}
                         placeholder="e.g. Senior Backend Engineer"
                         required
                     />
+                    {errors.job_title && <span className="error-message">{errors.job_title}</span>}
                 </div>
-                <div className="input-group">
+                <div className={`input-group ${errors.company ? 'error' : ''}`}>
                     <label>Company Name*</label>
                     <input
                         type="text"
                         name="company"
+                        className={errors.company ? 'error' : ''}
                         value={formData.company}
                         onChange={handleInputChange}
                         placeholder="Hiring Company"
                         required
                     />
+                    {errors.company && <span className="error-message">{errors.company}</span>}
                 </div>
+
                 <div className="input-group">
                     <label>Workplace Type*</label>
                     <select name="workplace_type" value={formData.workplace_type} onChange={handleInputChange}>
@@ -142,17 +223,20 @@ const PostJobPage = ({ onJobPosted }) => {
                         <option>Remote</option>
                     </select>
                 </div>
-                <div className="input-group">
+                <div className={`input-group ${errors.location ? 'error' : ''}`}>
                     <label>Job Location*</label>
                     <input
                         type="text"
                         name="location"
+                        className={errors.location ? 'error' : ''}
                         value={formData.location}
                         onChange={handleInputChange}
                         placeholder="City, State"
                         required
                     />
+                    {errors.location && <span className="error-message">{errors.location}</span>}
                 </div>
+
                 <div className="input-group">
                     <label>Job Type*</label>
                     <select name="job_type" value={formData.job_type} onChange={handleInputChange}>
@@ -162,27 +246,34 @@ const PostJobPage = ({ onJobPosted }) => {
                         <option>Internship</option>
                     </select>
                 </div>
-                <div className="input-group">
+                <div className={`input-group ${errors.deadline ? 'error' : ''}`}>
                     <label>Deadline</label>
                     <input
                         type="date"
                         name="deadline"
+                        className={errors.deadline ? 'error' : ''}
                         value={formData.deadline}
                         onChange={handleInputChange}
+                        min={new Date().toISOString().split('T')[0]}
                     />
+                    {errors.deadline && <span className="error-message">{errors.deadline}</span>}
                 </div>
+
             </div>
-            <div className="input-group full-width">
+            <div className={`input-group full-width ${errors.description ? 'error' : ''}`}>
                 <label>Job Description* (Responsibilities & Requirements)</label>
                 <textarea
                     name="description"
                     rows="8"
+                    className={errors.description ? 'error' : ''}
                     value={formData.description}
                     onChange={handleInputChange}
-                    placeholder="Describe the role..."
+                    placeholder="Describe the role in detail..."
                     required
                 />
+                {errors.description && <span className="error-message">{errors.description}</span>}
             </div>
+
         </div>
     );
 
@@ -234,13 +325,15 @@ const PostJobPage = ({ onJobPosted }) => {
                                 </button>
                             )}
                         </div>
-                        <div className="input-group">
+                        <div className={`input-group ${errors[`q_${q.id}`] ? 'error' : ''}`}>
                             <input
                                 type="text"
+                                className={errors[`q_${q.id}`] ? 'error' : ''}
                                 value={q.question}
                                 onChange={(e) => updateQuestion(q.id, 'question', e.target.value)}
                                 placeholder="Edit question text..."
                             />
+                            {errors[`q_${q.id}`] && <span className="error-message">{errors[`q_${q.id}`]}</span>}
                         </div>
                         <div className="q-meta">
                             <select value={q.input_type} onChange={(e) => updateQuestion(q.id, 'input_type', e.target.value)}>
@@ -328,11 +421,11 @@ const PostJobPage = ({ onJobPosted }) => {
                             {step < 3 ? (
                                 <button
                                     className="btn btn-primary"
-                                    onClick={() => setStep(step + 1)}
-                                    disabled={step === 1 && (!formData.job_title || !formData.company || !formData.description)}
+                                    onClick={handleNextStep}
                                 >
                                     Continue <ChevronRight size={18} />
                                 </button>
+
                             ) : (
                                 <button className="btn btn-primary" onClick={handleSubmit} disabled={isSubmitting}>
                                     {isSubmitting ? 'Posting...' : 'Publish Job'} <ChevronRight size={18} />

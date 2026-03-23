@@ -123,6 +123,26 @@ class ATSController:
         }
         
         await db.db.resumes.insert_one(resume_record)
+        
+        # 6. Notify the Recruiter
+        try:
+            hr_id_str = job.get("posted_by")
+            if hr_id_str:
+                hr_user = await db.users_db.users.find_one({"_id": ObjectId(hr_id_str)})
+                if hr_user and "email" in hr_user:
+                    hr_notif = {
+                        "user_email": hr_user["email"],
+                        "message": f"📈 New application for {jd_data.job_title} from {name}",
+                        "is_read": False,
+                        "type": "new_app",
+                        "created_at": datetime.utcnow().isoformat(),
+                        "link": "/app/analytics" # Or dashboard
+                    }
+                    await db.db.notifications.insert_one(hr_notif)
+                    print(f"Notified HR ({hr_user['email']}) about new application.")
+        except Exception as e:
+            print(f"Failed to notify HR: {e}")
+
         print(f"Successfully stored application for {name} in 'resumes' collection.")
         
         return {

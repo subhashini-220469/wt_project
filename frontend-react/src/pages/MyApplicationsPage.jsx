@@ -208,27 +208,6 @@ const MyApplicationsPage = () => {
                                                 </div>
                                             </div>
 
-                                            <motion.button
-                                                whileHover={{ x: 5 }}
-                                                style={{
-                                                    marginTop: '1.5rem',
-                                                    width: '100%',
-                                                    padding: '0.8rem',
-                                                    borderRadius: '12px',
-                                                    border: 'none',
-                                                    background: 'var(--secondary)',
-                                                    color: 'var(--primary)',
-                                                    fontSize: '0.9rem',
-                                                    fontWeight: 700,
-                                                    cursor: 'pointer',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    gap: '8px'
-                                                }}
-                                            >
-                                                View Details <ArrowRight size={16} />
-                                            </motion.button>
                                         </motion.div>
                                     );
                                 })

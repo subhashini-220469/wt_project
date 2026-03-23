@@ -68,3 +68,12 @@ class ScoringResult(BaseModel):
     formatting_score: float
     details: Dict
     feedback: Dict[str, str] = {}
+
+class Notification(BaseModel):
+    user_email: str
+    message: str
+    is_read: bool = False
+    type: str  # "new_job", "deadline"
+    created_at: str
+    link: Optional[str] = None # For frontend navigation if needed
+    job_id: Optional[str] = None # Link to the specific job triggering the notif

@@ -88,7 +88,7 @@ const AutomationPage = ({
                                                         type="checkbox"
                                                         checked={isSelected}
                                                         onChange={() => toggleCandidate(email)}
-                                                        disabled={isSendingEmails || status === 'success'}
+                                                        disabled={isSendingEmails}
                                                     />
                                                     <div className="check-info">
                                                         <strong>{c.resume_data?.name}</strong>
@@ -116,26 +116,40 @@ const AutomationPage = ({
                             </div>
 
                             <div className="automation-actions">
-                                <button
-                                    className="btn btn-primary btn-large w-full"
-                                    onClick={handleSendBroadcast}
-                                    disabled={isSendingEmails || selectedCandidates.length === 0}
-                                >
-                                    {isSendingEmails ? <Loader2 className="spin" /> : <Mail size={18} />}
-                                    {isSendingEmails ? 'Broadcasting Invitations...' : `Send Broadcast (${selectedCandidates.length})`}
-                                </button>
+                                {allFinished ? (
+                                    <motion.div 
+                                        className="completion-banner"
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        style={{ 
+                                            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                            color: '#fff', 
+                                            padding: '1.25rem',
+                                            borderRadius: '16px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '12px',
+                                            fontWeight: 800,
+                                            boxShadow: '0 10px 25px -5px rgba(16, 185, 129, 0.3)',
+                                            width: '100%',
+                                            fontSize: '1.1rem'
+                                        }}
+                                    >
+                                        <PartyPopper size={24} /> 
+                                        <span>Successfully Completed!</span>
+                                    </motion.div>
+                                ) : (
+                                    <button
+                                        className="btn btn-primary btn-large w-full"
+                                        onClick={handleSendBroadcast}
+                                        disabled={isSendingEmails || selectedCandidates.length === 0}
+                                    >
+                                        {isSendingEmails ? <Loader2 className="spin" /> : <Mail size={18} />}
+                                        {isSendingEmails ? 'Broadcasting Invitations...' : `Send Broadcast (${selectedCandidates.length})`}
+                                    </button>
+                                )}
                             </div>
-
-                            {allFinished && (
-                                <motion.div
-                                    className="completion-banner"
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                >
-                                    <PartyPopper size={24} />
-                                    <span>Successfully Completed!</span>
-                                </motion.div>
-                            )}
                         </div>
                     )}
                 </div>
