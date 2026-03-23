@@ -79,6 +79,7 @@ export const signin = async (req, res) => {
         return res.status(200).json({
             message: "Successfully logged in",
             accessToken,
+            userId: user._id,
             email: user.email,
             role: user.role === "null" ? null : user.role,
             roleRequired: user.role === "null" || user.role == null

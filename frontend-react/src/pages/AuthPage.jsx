@@ -74,7 +74,8 @@ const AuthPage = ({ onLoginSuccess }) => {
         setPendingGoogleUser({ accessToken: res.data.accessToken });
       } else {
         if (onLoginSuccess) {
-          onLoginSuccess(res.data.role || 'user');
+          localStorage.setItem('userId', res.data.userId);
+          onLoginSuccess(res.data.role || 'user', res.data.userId);
         }
         navigate('/');
       }
@@ -110,8 +111,12 @@ const AuthPage = ({ onLoginSuccess }) => {
         localStorage.setItem('userEmail', res.data.email);
       }
 
+      if (res.data.userId) {
+        localStorage.setItem('userId', res.data.userId);
+      }
+
       if (onLoginSuccess) {
-        onLoginSuccess(res.data.role);
+        onLoginSuccess(res.data.role, res.data.userId);
       }
       navigate('/');
     } catch (err) {
@@ -184,7 +189,15 @@ const AuthPage = ({ onLoginSuccess }) => {
       }
 
       if (isLogin) {
-        setPendingOtpAuth({ data: data, email: formData.email });
+        localStorage.setItem('accessToken', data.accessToken);
+        localStorage.setItem('userEmail', formData.email);
+        if (data.userId) {
+          localStorage.setItem('userId', data.userId);
+        }
+        if (onLoginSuccess) {
+          onLoginSuccess(data.role || 'user', data.userId);
+        }
+        navigate('/');
       } else {
         setIsLogin(true);
         setSuccess("Account created successfully! Please sign in.");
@@ -209,13 +222,20 @@ const AuthPage = ({ onLoginSuccess }) => {
         <div className="auth-split">
           <div className="auth-visuals">
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              className="visual-content"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 1 }}
+              className="visual-content-new"
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}
             >
-              <h1>Almost There!</h1>
-              <p>Tell us how you'll be using the platform so we can personalise your experience.</p>
+              <h1 className="welcome-text" style={{ fontSize: '3rem' }}>setup</h1>
+              <div className="branding-massive" style={{ fontSize: '1.5rem' }}>
+                <span className="brand-smart">your</span>
+                <span className="brand-hire">Profile</span>
+              </div>
+              <p style={{ marginTop: '2rem', color: '#94a3b8', maxWidth: '300px', fontSize: '1rem' }}>
+                One last step to personalize your smartHire experience.
+              </p>
             </motion.div>
           </div>
 
@@ -232,29 +252,33 @@ const AuthPage = ({ onLoginSuccess }) => {
                 </motion.div>
               )}
 
-              <div className="role-picker-grid">
+              <div className="role-picker-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)', maxWidth: '400px', margin: '0 0 2rem 0', gap: '1rem' }}>
                 <motion.button
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={{ scale: 1.02 }}
                   className={`role-card ${selectedRole === 'user' ? 'role-card--selected' : ''}`}
                   onClick={() => setSelectedRole('user')}
                   type="button"
+                  style={{ padding: '1.25rem' }}
                 >
-                  <UserCheck size={36} strokeWidth={1.5} />
-                  <span className="role-card__title">Candidate</span>
-                  <span className="role-card__desc">Browse jobs and apply for positions</span>
+                  <div className="role-icon-box" style={{ background: selectedRole === 'user' ? 'var(--primary)' : '#f1f5f9', color: selectedRole === 'user' ? '#fff' : '#64748b', padding: '10px', borderRadius: '12px', marginBottom: '0.4rem' }}>
+                    <UserCheck size={24} strokeWidth={2} />
+                  </div>
+                  <span className="role-card__title" style={{ fontSize: '1rem' }}>Candidate</span>
+                  <span className="role-card__desc" style={{ fontSize: '0.8rem' }}>Apply for jobs</span>
                 </motion.button>
 
                 <motion.button
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={{ scale: 1.02 }}
                   className={`role-card ${selectedRole === 'hr' ? 'role-card--selected' : ''}`}
                   onClick={() => setSelectedRole('hr')}
                   type="button"
+                  style={{ padding: '1.25rem' }}
                 >
-                  <Briefcase size={36} strokeWidth={1.5} />
-                  <span className="role-card__title">HR / Recruiter</span>
-                  <span className="role-card__desc">Post jobs and screen candidates</span>
+                  <div className="role-icon-box" style={{ background: selectedRole === 'hr' ? 'var(--primary)' : '#f1f5f9', color: selectedRole === 'hr' ? '#fff' : '#64748b', padding: '10px', borderRadius: '12px', marginBottom: '0.4rem' }}>
+                    <Briefcase size={24} strokeWidth={2} />
+                  </div>
+                  <span className="role-card__title" style={{ fontSize: '1rem' }}>Recruiter</span>
+                  <span className="role-card__desc" style={{ fontSize: '0.8rem' }}>Post & manage jobs</span>
                 </motion.button>
               </div>
 
@@ -285,13 +309,14 @@ const AuthPage = ({ onLoginSuccess }) => {
 
               <button
                 className="submit-btn"
-                style={{ marginTop: '2rem' }}
+                style={{ marginTop: '1rem', width: '100%', maxWidth: '400px', padding: '1rem' }}
                 onClick={handleSetRole}
                 disabled={!selectedRole || roleLoading}
               >
                 {roleLoading ? 'Saving...' : 'Continue'}
                 <ArrowRight size={18} />
               </button>
+
             </div>
           </div>
         </div>
