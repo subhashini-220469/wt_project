@@ -6,12 +6,23 @@ import { GoogleLogin } from "@react-oauth/google";
 import axios from "axios";
 import authClient from "../services/authClient";
 import SmarthireSideCard from "../components/SmarthireSideCard";
+import OTPVerification from "../components/OTPVerification";
 import '../styles/AuthPage.css';
 
 const AUTH_BASE = "http://localhost:5000";
 
 const AuthPage = ({ onLoginSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
+  const [pendingOtpAuth, setPendingOtpAuth] = useState(null);
+
+  const finalizeAuth = (data) => {
+    localStorage.setItem('accessToken', data.accessToken);
+    localStorage.setItem('userEmail', formData.email);
+    if (onLoginSuccess) {
+      onLoginSuccess(data.role || 'user');
+    }
+    navigate('/');
+  };
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -351,7 +362,28 @@ const AuthPage = ({ onLoginSuccess }) => {
 
         {/* Right Side - Form */}
         <div className="auth-form-section">
-          <div className="form-wrapper">
+          <AnimatePresence mode="wait">
+            {pendingOtpAuth ? (
+              <motion.div
+                key="otp"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                style={{ width: '100%', display: 'flex', justifyContent: 'center' }}
+              >
+                <OTPVerification 
+                   email={pendingOtpAuth.email} 
+                   onVerify={() => finalizeAuth(pendingOtpAuth.data)} 
+                />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="auth-form"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                className="form-wrapper"
+              >
             <div className="form-header">
               <h2>{isLogin ? 'Sign In' : 'Create Account'}</h2>
               <p>{isLogin ? 'Please enter your credentials to continue.' : 'Fill in your details to get started.'}</p>
@@ -516,7 +548,9 @@ const AuthPage = ({ onLoginSuccess }) => {
                 </button>
               </p>
             </div>
-          </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </div>
