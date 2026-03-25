@@ -71,64 +71,67 @@ const HomePage = () => {
                 </div>
             </section>
 
-            {/* Solutions Section */}
-            <section id="solutions" className="solutions-section">
-                <div className="section-header">
-                    <h2>Our Smart <span className="text-teal">Solutions</span></h2>
-                    <p>Designed for both elite candidates and high-growth companies.</p>
-                </div>
-                
-                <div className="solutions-grid">
-                    <div className="solution-card">
-                        <div className="sol-icon-bg">
-                            <img src="/icon-candidate.png" alt="Candidate" />
-                        </div>
-                        <h3>AI Resume Screening</h3>
-                        <p>Automatically rank and score thousands of resumes against your job description in seconds.</p>
+            {/* Solutions & CTA Wrapper with Custom Background */}
+            <div className="solutions-cta-wrapper">
+                {/* Solutions Section */}
+                <section id="solutions" className="solutions-section">
+                    <div className="section-header">
+                        <h2>Our Smart <span className="text-teal">Solutions</span></h2>
+                        <p>Designed for both elite candidates and high-growth companies.</p>
                     </div>
+                    
+                    <div className="solutions-grid">
+                        <div className="solution-card">
+                            <div className="sol-icon-bg">
+                                <img src="/icon-candidate.png" alt="Candidate" />
+                            </div>
+                            <h3>AI Resume Screening</h3>
+                            <p>Automatically rank and score thousands of resumes against your job description in seconds.</p>
+                        </div>
 
-                    <div className="solution-card">
-                        <div className="sol-icon-bg">
-                            <img src="/icon-recruiter.png" alt="Recruiter" />
+                        <div className="solution-card">
+                            <div className="sol-icon-bg">
+                                <img src="/icon-recruiter.png" alt="Recruiter" />
+                            </div>
+                            <h3>Job Management</h3>
+                            <p>Manage all your job postings and candidate pipelines in one centralized, sleek dashboard.</p>
                         </div>
-                        <h3>Job Management</h3>
-                        <p>Manage all your job postings and candidate pipelines in one centralized, sleek dashboard.</p>
-                    </div>
 
-                    <div className="solution-card">
-                        <div className="sol-icon-bg">
-                            <img src="/icon-send.png" alt="Automation" />
+                        <div className="solution-card">
+                            <div className="sol-icon-bg">
+                                <img src="/icon-send.png" alt="Automation" />
+                            </div>
+                            <h3>Automated Outreach</h3>
+                            <p>Reach out to shortlisted candidates automatically with personalized, high-conversion emails.</p>
                         </div>
-                        <h3>Automated Outreach</h3>
-                        <p>Reach out to shortlisted candidates automatically with personalized, high-conversion emails.</p>
-                    </div>
 
-                    <div className="solution-card">
-                        <div className="sol-icon-bg">
-                            <img src="/icon-writer.png" alt="Writer" />
+                        <div className="solution-card">
+                            <div className="sol-icon-bg">
+                                <img src="/icon-writer.png" alt="Writer" />
+                            </div>
+                            <h3>ATS Optimization</h3>
+                            <p>Candidates can optimize their resumes to match industry standards and rank higher in screenings.</p>
                         </div>
-                        <h3>ATS Optimization</h3>
-                        <p>Candidates can optimize their resumes to match industry standards and rank higher in screenings.</p>
                     </div>
-                </div>
-            </section>
+                </section>
 
-            {/* CTA Section */}
-            <section className="cta-section-footer">
-                <div className="cta-card">
-                    <div className="cta-text">
-                        <h2>Ready to transform your hiring?</h2>
-                        <p>Join thousands of companies using SmartHire to build their dream teams.</p>
-                        <div className="cta-btns">
-                            <button className="btn-get-started" onClick={() => navigate('/auth')}>Get Started for Free</button>
-                            <button className="btn-demo" onClick={() => navigate('/auth')}>Request Demo</button>
+                {/* CTA Section */}
+                <section className="cta-section-footer">
+                    <div className="cta-card">
+                        <div className="cta-text">
+                            <h2>Ready to transform your hiring?</h2>
+                            <p>Join thousands of companies using SmartHire to build their dream teams.</p>
+                            <div className="cta-btns">
+                                <button className="btn-get-started" onClick={() => navigate('/auth')}>Get Started for Free</button>
+                                <button className="btn-demo" onClick={() => navigate('/auth')}>Request Demo</button>
+                            </div>
+                        </div>
+                        <div className="cta-image">
+                            <img src="/girl-mascot.png" alt="Mascot" />
                         </div>
                     </div>
-                    <div className="cta-image">
-                        <img src="/girl-mascot.png" alt="Mascot" />
-                    </div>
-                </div>
-            </section>
+                </section>
+            </div>
 
             <footer className="home-footer-new">
                 <div className="footer-content">

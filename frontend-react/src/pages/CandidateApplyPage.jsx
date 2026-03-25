@@ -20,7 +20,7 @@ import { apiService } from '../services/api';
 import { getResumeData } from '../utils/resumeStorage';
 
 const CandidateApplyPage = ({ job, onBack }) => {
-    const [step, setStep] = useState(1); // 1: Questions, 2: Upload, 3: Result
+    const [step, setStep] = useState(1); // 1: Qs, 2: Upload, 3: Feedback, 4: Result
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -29,6 +29,8 @@ const CandidateApplyPage = ({ job, onBack }) => {
     const [resumeFile, setResumeFile] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [result, setResult] = useState(null);
+    const [analysisResult, setAnalysisResult] = useState(null);
+    const [parsedResumeData, setParsedResumeData] = useState(null);
     const [useMaster, setUseMaster] = useState(false);
 
     useEffect(() => {
@@ -84,25 +86,47 @@ const CandidateApplyPage = ({ job, onBack }) => {
         }
     };
 
-    const handleSubmit = async () => {
+    const handleAnalyze = async () => {
         setIsSubmitting(true);
         try {
-            let resumeDataOverride = null;
+            let resumeData = null;
             if (useMaster) {
                 const saved = getResumeData();
-                resumeDataOverride = saved?.resume_data;
+                resumeData = saved?.resume_data;
+            } else if (resumeFile) {
+                // We need to parse it for the analysis phase
+                const parseRes = await apiService.parseResume(resumeFile);
+                resumeData = parseRes.resume_data;
             }
 
+            if (!resumeData) throw new Error("No resume found. Please upload or use master profile.");
+
+            setParsedResumeData(resumeData);
+
+            // Get feedback from scoring engine
+            const feedbackRes = await apiService.checkAtsScore(job._id, resumeData);
+            setAnalysisResult(feedbackRes);
+            setStep(3);
+        } catch (error) {
+            alert("Analysis failed: " + error.message);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleFinalSubmit = async () => {
+        setIsSubmitting(true);
+        try {
             const res = await apiService.applyToJob(
                 job._id,
                 formData.name,
                 formData.email,
-                useMaster ? null : resumeFile,
+                null, // No need to re-upload file if we have parsed data override
                 formData.answers,
-                resumeDataOverride
+                parsedResumeData
             );
             setResult(res);
-            setStep(3);
+            setStep(4);
         } catch (error) {
             alert("Application failed: " + error.message);
         } finally {
@@ -178,10 +202,10 @@ const CandidateApplyPage = ({ job, onBack }) => {
                         <div className="fast-track-apply">
                             <button
                                 className="btn btn-primary w-full"
-                                onClick={handleSubmit}
+                                onClick={handleAnalyze}
                                 disabled={!formData.name || !formData.email || isSubmitting}
                             >
-                                {isSubmitting ? 'Syncing Profile...' : 'Submit Application (Fast-Track)'}
+                                {isSubmitting ? 'Analyzing Profile...' : 'Get Instant AI Feedback'}
                             </button>
                             <button
                                 className="btn btn-ghost w-full"
@@ -256,10 +280,10 @@ const CandidateApplyPage = ({ job, onBack }) => {
 
                 <button
                     className="btn btn-primary w-full mt-2"
-                    onClick={handleSubmit}
+                    onClick={handleAnalyze}
                     disabled={(!resumeFile && !useMaster) || isSubmitting}
                 >
-                    {isSubmitting ? 'Processing Application...' : 'Submit Application'}
+                    {isSubmitting ? 'Analyzing Profile...' : 'Get Instant AI Feedback'}
                 </button>
                 {isSubmitting && (
                     <div className="ai-status-mini">
@@ -273,6 +297,95 @@ const CandidateApplyPage = ({ job, onBack }) => {
 
     const [activeTab, setActiveTab] = useState('summary');
 
+    const renderFeedback = () => {
+        if (!analysisResult) return null;
+        const feedback = analysisResult.feedback || {};
+        const score = analysisResult.total_score || 0;
+
+        return (
+            <div className="apply-step feedback-step">
+                <div className="apply-header">
+                    <button className="btn-ghost" onClick={() => setStep(useMaster ? 1 : 2)}><ChevronLeft size={20} /> Back to Edit</button>
+                    <h2>Review Your Analysis</h2>
+                    <p className="text-muted">Here's how your profile matches <strong>{job.job_title}</strong>.</p>
+                </div>
+
+                <div className="ai-feedback-grid" style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                    gap: '1.5rem',
+                    textAlign: 'left',
+                    marginTop: '1.5rem'
+                }}>
+                    {/* Match Score Card */}
+                    <div className="feedback-card" style={{
+                        background: 'var(--secondary)',
+                        padding: '1.25rem',
+                        borderRadius: '24px',
+                        border: '1px solid var(--border-color)',
+                        gridColumn: '1 / -1'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                                    <BrainCircuit size={20} className="text-primary" />
+                                    <h4 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700 }}>ATS Match Score</h4>
+                                </div>
+                                <div style={{ fontSize: '3rem', fontWeight: 850, color: 'var(--primary)' }}>
+                                    {score}%
+                                </div>
+                            </div>
+                            <div style={{ textAlign: 'right', maxWidth: '300px' }}>
+                                <p style={{ fontSize: '0.85rem', color: 'var(--text-main)', margin: 0 }}>
+                                    {score >= 70 ? "Excellent match! Your profile aligns well with this role's requirements." : "Good start. Check the suggestions below to improve your chances."}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Specific Feedback Sections */}
+                    {[
+                        { title: 'Skills Match', content: feedback.skills, icon: <LayoutList size={20} /> },
+                        { title: 'Experience match', content: feedback.experience, icon: <Briefcase size={20} /> },
+                        { title: 'Resume Formatting', content: feedback.formatting, icon: <FileCheck size={20} /> }
+                    ].map((item, idx) => (
+                        <div key={idx} className="feedback-card" style={{
+                            background: 'var(--card-bg)',
+                            padding: '1.25rem',
+                            borderRadius: '24px',
+                            border: '1px solid var(--border-color)'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                                <span style={{ color: 'var(--primary)' }}>{item.icon}</span>
+                                <h4 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700 }}>{item.title}</h4>
+                            </div>
+                            <p style={{ fontSize: '0.85rem', color: 'var(--text-main)', opacity: 0.9, margin: 0, lineHeight: '1.5', whiteSpace: 'pre-line' }}>
+                                {item.content || "Analyzing content..."}
+                            </p>
+                        </div>
+                    ))}
+                </div>
+
+                <div className="analysis-cta" style={{ marginTop: '2.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <button 
+                        className="btn btn-primary w-full" 
+                        onClick={handleFinalSubmit}
+                        style={{ height: '56px', fontSize: '1.1rem' }}
+                        disabled={isSubmitting}
+                    >
+                        {isSubmitting ? 'Submitting Application...' : 'Apply Now with this Match'}
+                    </button>
+                    <button 
+                        className="btn btn-ghost w-full" 
+                        onClick={() => setStep(useMaster ? 1 : 2)}
+                    >
+                        I want to edit my resume to improve this score
+                    </button>
+                </div>
+            </div>
+        );
+    };
+
     const renderResult = () => {
         return (
             <div className="apply-step result-step">
@@ -281,13 +394,13 @@ const CandidateApplyPage = ({ job, onBack }) => {
                     animate={{ scale: 1, opacity: 1 }}
                     className="success-view-container"
                     style={{
-                        textAlign: 'center',
-                        padding: '4rem 2rem',
+                        padding: '3rem 2rem',
                         background: 'var(--card-bg)',
                         borderRadius: '32px',
                         border: '1px solid var(--border-color)',
                         maxWidth: '600px',
-                        margin: '2rem auto'
+                        margin: '4rem auto',
+                        textAlign: 'center'
                     }}
                 >
                     <div className="success-icon-wrapper" style={{
@@ -304,30 +417,17 @@ const CandidateApplyPage = ({ job, onBack }) => {
                         <CheckCircle2 size={40} />
                     </div>
 
-                    <h2 style={{ fontSize: '2.25rem', fontWeight: 850, color: 'var(--text-main)', marginBottom: '1rem', letterSpacing: '-0.04em' }}>
-                        Application <span style={{ color: 'var(--primary)' }}>Successful!</span>
+                    <h2 style={{ fontSize: '2rem', fontWeight: 850, color: 'var(--text-main)', marginBottom: '1rem', letterSpacing: '-0.04em' }}>
+                        Application <span style={{ color: 'var(--primary)' }}>Submitted!</span>
                     </h2>
 
-                    <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', lineHeight: '1.6', marginBottom: '2.5rem' }}>
-                        You have successfully applied to the <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>{job.job_title}</span> role at <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>{job.company}</span>.
+                    <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', marginBottom: '2.5rem', lineHeight: '1.6' }}>
+                        Your application for the <strong>{job.job_title}</strong> role at <strong>{job.company}</strong> has been received by the hiring team.
                     </p>
 
-                    <div className="next-steps-info" style={{
-                        background: 'var(--secondary)',
-                        padding: '1.5rem',
-                        borderRadius: '20px',
-                        marginBottom: '2.5rem',
-                        textAlign: 'left'
-                    }}>
-                        <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '0.5rem', textTransform: 'uppercase' }}>What happens next?</h4>
-                        <p style={{ fontSize: '0.9rem', color: 'var(--text-main)', opacity: 0.8, margin: 0 }}>
-                            The hiring team will review your application. You can track your real-time status and match score in your dashboard.
-                        </p>
-                    </div>
-
                     <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                        <button className="btn btn-primary" onClick={onBack} style={{ padding: '0.8rem 2rem' }}>
-                            Browse More Jobs
+                        <button className="btn btn-primary" onClick={onBack} style={{ padding: '1rem 2.5rem' }}>
+                            Back to Job Board
                         </button>
                     </div>
                 </motion.div>
@@ -346,7 +446,8 @@ const CandidateApplyPage = ({ job, onBack }) => {
                 >
                     {step === 1 && renderQuestions()}
                     {step === 2 && renderUpload()}
-                    {step === 3 && renderResult()}
+                    {step === 3 && renderFeedback()}
+                    {step === 4 && renderResult()}
                 </motion.div>
             </AnimatePresence>
         </div>

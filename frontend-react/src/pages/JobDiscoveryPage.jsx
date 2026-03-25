@@ -1,16 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Search, MapPin, Clock, DollarSign, Briefcase, ChevronRight, Filter, BrainCircuit, CheckCircle2 } from 'lucide-react';
 import { apiService } from '../services/api';
 import { getResumeData } from '../utils/resumeStorage';
 
-const JobDiscoveryPage = ({ onApply }) => {
+const JobDiscoveryPage = ({ onApply, targetJobId, targetAction, onTargetConsumed }) => {
     const [jobs, setJobs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [quickScores, setQuickScores] = useState({}); // jobId -> score
     const [scoringFor, setScoringFor] = useState(null); // jobId being scored
     const [appliedJobIds, setAppliedJobIds] = useState(new Set()); // Track applied jobs
+    const [highlightedJobId, setHighlightedJobId] = useState(null);
+    const jobCardRefs = useRef({});
 
     useEffect(() => {
         const fetchJobs = async () => {
@@ -53,6 +55,31 @@ const JobDiscoveryPage = ({ onApply }) => {
         };
         loadAppliedJobs();
     }, []);
+
+    // Deep-link: scroll to & highlight the target job, trigger apply if needed
+    useEffect(() => {
+        if (!targetJobId || loading || jobs.length === 0) return;
+
+        setHighlightedJobId(targetJobId);
+
+        // Give React time to render the card into the ref map
+        setTimeout(() => {
+            const el = jobCardRefs.current[targetJobId];
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            if (targetAction === 'apply') {
+                const job = jobs.find(j => j._id === targetJobId);
+                if (job && !appliedJobIds.has(job._id) && job.status !== 'expired') {
+                    onApply(job);
+                }
+            }
+
+            // Clear the pending state so it doesn't re-trigger
+            if (onTargetConsumed) onTargetConsumed();
+        }, 400);
+    }, [targetJobId, loading, jobs]);
 
     const handleQuickScore = async (jobId) => {
         const candidateInfo = getResumeData();
@@ -118,12 +145,13 @@ const JobDiscoveryPage = ({ onApply }) => {
                         return (
                             <motion.div
                                 key={job._id}
-                                className="job-discovery-card card"
+                                ref={el => jobCardRefs.current[job._id] = el}
+                                className={`job-discovery-card card${highlightedJobId === job._id ? ' job-card-highlighted' : ''}`}
                                 whileHover={{ scale: 1.01, translateY: -2 }}
                             >
                                 <div className="job-card-top">
                                     <div className="company-logo-placeholder">
-                                        {job.company.charAt(0)}
+                                        {(job.company?.trim() || job.job_title?.trim() || "?").charAt(0).toUpperCase()}
                                     </div>
                                     <div className="job-title-info">
                                         <h3>{job.job_title}</h3>

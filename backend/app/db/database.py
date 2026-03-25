@@ -6,15 +6,18 @@ load_dotenv()
 
 MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017")
 DATABASE_NAME = "resume_screening"
+USER_DATABASE_NAME = "resume_screening" # Synchronized with node-backend
 
 class Database:
     client: AsyncIOMotorClient = None
     db = None
+    users_db = None
 
     @classmethod
     async def connect_db(cls):
         cls.client = AsyncIOMotorClient(MONGO_URL)
         cls.db = cls.client[DATABASE_NAME]
+        cls.users_db = cls.client[USER_DATABASE_NAME]
         print(f"Connected to MongoDB at {MONGO_URL}")
         
         # Diagnostics

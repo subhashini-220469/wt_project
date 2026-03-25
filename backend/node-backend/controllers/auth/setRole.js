@@ -64,6 +64,7 @@ export const setRole = async (req, res) => {
     return res.status(200).json({
       message: "Role set successfully",
       accessToken,
+      userId: user._id,
       email: user.email,
       role: user.role
     });

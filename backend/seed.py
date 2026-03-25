@@ -10,19 +10,19 @@ load_dotenv()
 MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017")
 DATABASE_NAME = "resume_screening" # Correct DB name from database.py
 
-client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_URL)
-db = client[DATABASE_NAME]
 
 async def seed_data():
-    print(f"🚀 Checking if seeding is needed for '{DATABASE_NAME}'...")
+    client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_URL)
+    db = client[DATABASE_NAME]
+    print(f"[START] Checking if seeding is needed for '{DATABASE_NAME}'...")
     
     # Only seed if no jobs exist, to avoid accidental data loss on every restart
     existing_count = await db.jobs.count_documents({})
     if existing_count > 0:
-        print("✨ Database already has records. Use --force to seed anyway (not implemented) or clear manually.")
+        print("[INFO] Database already has records. Use --force to seed anyway (not implemented) or clear manually.")
         return
 
-    print("🌱 Database is empty. Starting seed process...")
+    print("[INFO] Database is empty. Starting seed process...")
     
     # 1. We keep these commented out or removed so we don't accidentally wipe user data
     # await db.jobs.delete_many({})
@@ -76,7 +76,7 @@ async def seed_data():
         # Also insert into 'jds' for backward compatibility if needed
         await db.jds.insert_one(job)
         job_ids.append((str(res.inserted_id), job["job_title"]))
-        print(f"✅ Added Job: {job['job_title']}")
+        print(f"[OK] Added Job: {job['job_title']}")
         
     # 3. Sample Applications
     python_job_id = job_ids[0][0]
@@ -119,8 +119,8 @@ async def seed_data():
     ]
     
     await db.resumes.insert_many(candidates)
-    print(f"✅ Added {len(candidates)} test applications.")
-    print("\n✨ Data seeded successfully! Restart backend or refresh Frontend to see updates.")
+    print(f"[OK] Added {len(candidates)} test applications.")
+    print("\n[DONE] Data seeded successfully! Restart backend or refresh Frontend to see updates.")
 
 if __name__ == "__main__":
     asyncio.run(seed_data())

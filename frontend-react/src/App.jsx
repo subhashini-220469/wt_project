@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import { Sun, Moon } from 'lucide-react';
+import { Sun, Moon, Bell, BellDot, Check, X, Clock, Briefcase, UserPlus, Mail, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 // Components
 import Sidebar from './components/Sidebar';
@@ -38,7 +38,12 @@ function App() {
     const [results, setResults] = useState(null);
     const [profileName, setProfileName] = useState(() => localStorage.getItem('userName') || 'User');
     const [userId, setUserId] = useState(() => localStorage.getItem('userId') || null);
+    const [notifications, setNotifications] = useState([]);
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [pendingNotifJobId, setPendingNotifJobId] = useState(null);  // deep-link to a specific job
+    const [pendingNotifAction, setPendingNotifAction] = useState(null); // 'view' | 'apply'
     const navigate = useNavigate();
+    const notificationRef = useRef(null);
 
     // Secondary check on mount to ensure fully authenticated
     useEffect(() => {
@@ -114,9 +119,7 @@ function App() {
 
     // Fetch Candidates when a JD is selected
     useEffect(() => {
-        if (selectedJd) {
-            setCandidateStatuses({});
-            setAllFinished(false);
+        if (activeTab === 'automation' && selectedJd) {
             apiService.fetchResults(selectedJd._id)
                 .then(data => {
                     if (Array.isArray(data)) {
@@ -136,6 +139,7 @@ function App() {
                                 const score = c.score?.total_score ?? c.score ?? 0;
                                 return score >= 70;
                             })
+                            .filter(c => initialStatuses[c.resume_data?.email] !== 'success') // Only uncontacted
                             .map(c => c.resume_data?.email)
                             .filter(email => !!email);
 
@@ -155,8 +159,10 @@ function App() {
                     }
                 })
                 .catch(err => console.error("Failed to fetch results", err));
+        } else if (activeTab !== 'automation') {
+            setAllFinished(false); // Reset when leaving tab
         }
-    }, [selectedJd]);
+    }, [selectedJd, activeTab]);
 
 
     // Fetch Profile on mount/login
@@ -392,6 +398,7 @@ function App() {
         }
         setIsSendingEmails(false);
         setAllFinished(true);
+        setSelectedCandidates([]); // Reset selection once broadcast is complete
     };
 
     const handleRetry = async (e, email) => {
