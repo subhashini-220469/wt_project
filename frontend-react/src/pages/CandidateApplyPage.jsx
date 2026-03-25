@@ -20,7 +20,7 @@ import { apiService } from '../services/api';
 import { getResumeData } from '../utils/resumeStorage';
 
 const CandidateApplyPage = ({ job, onBack }) => {
-    const [step, setStep] = useState(1); // 1: Qs, 2: Upload, 3: Feedback, 4: Result
+    const [step, setStep] = useState(1); // 1: Upload, 2: Qs, 3: Feedback, 4: Result
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -86,7 +86,7 @@ const CandidateApplyPage = ({ job, onBack }) => {
         }
     };
 
-    const handleAnalyze = async () => {
+    const handleUploadContinue = async () => {
         setIsSubmitting(true);
         try {
             let resumeData = null;
@@ -94,7 +94,7 @@ const CandidateApplyPage = ({ job, onBack }) => {
                 const saved = getResumeData();
                 resumeData = saved?.resume_data;
             } else if (resumeFile) {
-                // We need to parse it for the analysis phase
+                // Parse it to auto-fill questions
                 const parseRes = await apiService.parseResume(resumeFile);
                 resumeData = parseRes.resume_data;
             }
@@ -103,8 +103,44 @@ const CandidateApplyPage = ({ job, onBack }) => {
 
             setParsedResumeData(resumeData);
 
-            // Get feedback from scoring engine
-            const feedbackRes = await apiService.checkAtsScore(job._id, resumeData);
+            // Auto-fill the screening questions
+            let newAnswers = { ...formData.answers };
+            if (job.screening_questions) {
+                job.screening_questions.forEach(q => {
+                    if (q.category === 'Work Experience' && resumeData.experience_years !== undefined) {
+                        newAnswers[q.id] = String(resumeData.experience_years);
+                    } else if (q.category === 'Education' && resumeData.education_level) {
+                        newAnswers[q.id] = resumeData.education_level;
+                    } else if (q.category === 'Visa Status' && resumeData.visa_status) {
+                        newAnswers[q.id] = resumeData.visa_status;
+                    } else if (q.category === 'Language' && resumeData.languages) {
+                        newAnswers[q.id] = Array.isArray(resumeData.languages) ? resumeData.languages.join(', ') : resumeData.languages;
+                    } else if (q.category === 'Cover Letter' && resumeData.suggested_cover_letter) {
+                        newAnswers[q.id] = resumeData.suggested_cover_letter;
+                    }
+                });
+            }
+
+            setFormData(prev => ({
+                ...prev,
+                name: prev.name || resumeData.name || '',
+                email: prev.email || resumeData.email || '',
+                answers: newAnswers
+            }));
+
+            setStep(2);
+        } catch (error) {
+            alert("Parsing failed: " + error.message);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleGetFeedback = async () => {
+        setIsSubmitting(true);
+        try {
+            // Get feedback from scoring engine using the parsed resume data
+            const feedbackRes = await apiService.checkAtsScore(job._id, parsedResumeData);
             setAnalysisResult(feedbackRes);
             setStep(3);
         } catch (error) {
@@ -137,7 +173,7 @@ const CandidateApplyPage = ({ job, onBack }) => {
     const renderQuestions = () => (
         <div className="apply-step">
             <div className="apply-header">
-                <button className="btn-ghost" onClick={onBack}><ChevronLeft size={20} /> Back to Jobs</button>
+                <button className="btn-ghost" onClick={() => setStep(1)}><ChevronLeft size={20} /> Back to Resume Upload</button>
                 <h2>Apply for {job.job_title}</h2>
                 <p className="text-muted">{job.company} • {job.location}</p>
             </div>
@@ -162,67 +198,73 @@ const CandidateApplyPage = ({ job, onBack }) => {
                     />
                 </div>
 
-                {job.screening_questions?.length > 0 && (
-                    <div className="screening-section">
-                        <h3>Screening Questions</h3>
-                        {job.screening_questions.map((q) => (
-                            <div key={q.id} className="input-group">
-                                <label>{q.question}{q.is_required ? '*' : ''}</label>
-                                {q.input_type === 'yes_no' ? (
-                                    <div className="radio-group">
-                                        <button
-                                            className={`btn-tag ${formData.answers[q.id] === 'Yes' ? 'selected' : ''}`}
-                                            onClick={() => handleAnswerChange(q.id, 'Yes')}
-                                        >Yes</button>
-                                        <button
-                                            className={`btn-tag ${formData.answers[q.id] === 'No' ? 'selected' : ''}`}
-                                            onClick={() => handleAnswerChange(q.id, 'No')}
-                                        >No</button>
-                                    </div>
-                                ) : q.input_type === 'long_text' ? (
-                                    <textarea
-                                        rows="3"
-                                        value={formData.answers[q.id] || ''}
-                                        onChange={(e) => handleAnswerChange(q.id, e.target.value)}
-                                    />
-                                ) : (
-                                    <input
-                                        type={q.input_type === 'numeric' ? 'number' : 'text'}
-                                        value={formData.answers[q.id] || ''}
-                                        onChange={(e) => handleAnswerChange(q.id, e.target.value)}
-                                    />
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                )}
+                {(() => {
+                    if (!job.screening_questions || job.screening_questions.length === 0) return null;
+                    const suggestedCategories = ['Cover Letter', 'Work Experience', 'Education', 'Visa Status', 'Language'];
+                    const suggestedQs = job.screening_questions.filter(q => suggestedCategories.includes(q.category));
+                    const screeningQs = job.screening_questions.filter(q => !suggestedCategories.includes(q.category));
+                    
+                    const renderQ = (q) => (
+                        <div key={q.id} className="input-group">
+                            <label>{q.question}{q.is_required ? '*' : ''}</label>
+                            {q.input_type === 'yes_no' ? (
+                                <div className="radio-group">
+                                    <button
+                                        className={`btn-tag ${formData.answers[q.id] === 'Yes' ? 'selected' : ''}`}
+                                        onClick={() => handleAnswerChange(q.id, 'Yes')}
+                                    >Yes</button>
+                                    <button
+                                        className={`btn-tag ${formData.answers[q.id] === 'No' ? 'selected' : ''}`}
+                                        onClick={() => handleAnswerChange(q.id, 'No')}
+                                    >No</button>
+                                </div>
+                            ) : q.input_type === 'long_text' ? (
+                                <textarea
+                                    rows="3"
+                                    value={formData.answers[q.id] || ''}
+                                    onChange={(e) => handleAnswerChange(q.id, e.target.value)}
+                                />
+                            ) : (
+                                <input
+                                    type={q.input_type === 'numeric' ? 'number' : 'text'}
+                                    value={formData.answers[q.id] || ''}
+                                    onChange={(e) => handleAnswerChange(q.id, e.target.value)}
+                                />
+                            )}
+                        </div>
+                    );
+
+                    return (
+                        <>
+                            {suggestedQs.length > 0 && (
+                                <div className="screening-section">
+                                    <h3>Suggested Questions</h3>
+                                    {suggestedQs.map(renderQ)}
+                                </div>
+                            )}
+                            {screeningQs.length > 0 && (
+                                <div className="screening-section" style={{ marginTop: suggestedQs.length > 0 ? '1.5rem' : '0' }}>
+                                    <h3>Screening Questions</h3>
+                                    {screeningQs.map(renderQ)}
+                                </div>
+                            )}
+                        </>
+                    );
+                })()}
 
                 <div className="apply-actions-final">
-                    {useMaster ? (
-                        <div className="fast-track-apply">
-                            <button
-                                className="btn btn-primary w-full"
-                                onClick={handleAnalyze}
-                                disabled={!formData.name || !formData.email || isSubmitting}
-                            >
-                                {isSubmitting ? 'Analyzing Profile...' : 'Get Instant AI Feedback'}
-                            </button>
-                            <button
-                                className="btn btn-ghost w-full"
-                                style={{ marginTop: '0.5rem', fontSize: '0.8rem' }}
-                                onClick={() => setStep(2)}
-                            >
-                                Wait, I want to upload a different resume for this job
-                            </button>
+                    <button
+                        className="btn btn-primary w-full"
+                        onClick={handleGetFeedback}
+                        disabled={!formData.name || !formData.email || isSubmitting}
+                    >
+                        {isSubmitting ? 'Analyzing Profile...' : 'Get Instant AI Feedback'}
+                    </button>
+                    {isSubmitting && (
+                        <div className="ai-status-mini" style={{ marginTop: '0.5rem', justifyContent: 'center' }}>
+                            <BrainCircuit className="spin" size={20} />
+                            <span>AI is analyzing your profile against the JD...</span>
                         </div>
-                    ) : (
-                        <button
-                            className="btn btn-primary w-full"
-                            onClick={() => setStep(2)}
-                            disabled={!formData.name || !formData.email}
-                        >
-                            Continue to Resume Upload
-                        </button>
                     )}
                 </div>
             </div>
@@ -232,7 +274,7 @@ const CandidateApplyPage = ({ job, onBack }) => {
     const renderUpload = () => (
         <div className="apply-step">
             <div className="apply-header">
-                <button className="btn-ghost" onClick={() => setStep(1)}><ChevronLeft size={20} /> Back to Questions</button>
+                <button className="btn-ghost" onClick={onBack}><ChevronLeft size={20} /> Back to Jobs</button>
                 <h2>Upload Your Resume</h2>
                 <p className="text-muted">Showcase your skills for the {job.job_title} role.</p>
             </div>
@@ -280,15 +322,15 @@ const CandidateApplyPage = ({ job, onBack }) => {
 
                 <button
                     className="btn btn-primary w-full mt-2"
-                    onClick={handleAnalyze}
+                    onClick={handleUploadContinue}
                     disabled={(!resumeFile && !useMaster) || isSubmitting}
                 >
-                    {isSubmitting ? 'Analyzing Profile...' : 'Get Instant AI Feedback'}
+                    {isSubmitting ? 'Parsing...' : 'Continue to Application'}
                 </button>
                 {isSubmitting && (
                     <div className="ai-status-mini">
                         <BrainCircuit className="spin" size={20} />
-                        <span>AI is analyzing your profile against the JD...</span>
+                        <span>AI is reading your resume...</span>
                     </div>
                 )}
             </div>
@@ -305,7 +347,7 @@ const CandidateApplyPage = ({ job, onBack }) => {
         return (
             <div className="apply-step feedback-step">
                 <div className="apply-header">
-                    <button className="btn-ghost" onClick={() => setStep(useMaster ? 1 : 2)}><ChevronLeft size={20} /> Back to Edit</button>
+                    <button className="btn-ghost" onClick={() => setStep(2)}><ChevronLeft size={20} /> Back to Questions</button>
                     <h2>Review Your Analysis</h2>
                     <p className="text-muted">Here's how your profile matches <strong>{job.job_title}</strong>.</p>
                 </div>
@@ -377,7 +419,7 @@ const CandidateApplyPage = ({ job, onBack }) => {
                     </button>
                     <button 
                         className="btn btn-ghost w-full" 
-                        onClick={() => setStep(useMaster ? 1 : 2)}
+                        onClick={() => setStep(2)}
                     >
                         I want to edit my resume to improve this score
                     </button>
@@ -444,8 +486,8 @@ const CandidateApplyPage = ({ job, onBack }) => {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
                 >
-                    {step === 1 && renderQuestions()}
-                    {step === 2 && renderUpload()}
+                    {step === 1 && renderUpload()}
+                    {step === 2 && renderQuestions()}
                     {step === 3 && renderFeedback()}
                     {step === 4 && renderResult()}
                 </motion.div>

@@ -66,6 +66,9 @@ class LLMParser:
         - projects (list of top 3 projects)
         - education_level (PhD, Masters, Bachelors, High School)
         - formatting_score (0-15 based on readability and structure)
+        - visa_status (Extract visa status if mentioned, else 'Unknown')
+        - languages (List of languages known)
+        - suggested_cover_letter (A short 3-sentence professional cover letter pitch based on this resume)
 
         Resume Text:
         {resume_text}
