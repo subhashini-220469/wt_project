@@ -31,6 +31,7 @@ const CandidateApplyPage = ({ job, onBack }) => {
     const [result, setResult] = useState(null);
     const [analysisResult, setAnalysisResult] = useState(null);
     const [parsedResumeData, setParsedResumeData] = useState(null);
+    const [parsedResumeFilename, setParsedResumeFilename] = useState(null);
     const [useMaster, setUseMaster] = useState(false);
 
     useEffect(() => {
@@ -90,18 +91,22 @@ const CandidateApplyPage = ({ job, onBack }) => {
         setIsSubmitting(true);
         try {
             let resumeData = null;
+            let resumeFilename = null;
             if (useMaster) {
                 const saved = getResumeData();
                 resumeData = saved?.resume_data;
+                resumeFilename = saved?.resume_filename || null;
             } else if (resumeFile) {
                 // We need to parse it for the analysis phase
                 const parseRes = await apiService.parseResume(resumeFile);
                 resumeData = parseRes.resume_data;
+                resumeFilename = parseRes.resume_filename || null;
             }
 
             if (!resumeData) throw new Error("No resume found. Please upload or use master profile.");
 
             setParsedResumeData(resumeData);
+            setParsedResumeFilename(resumeFilename);
 
             // Get feedback from scoring engine
             const feedbackRes = await apiService.checkAtsScore(job._id, resumeData);
@@ -117,13 +122,18 @@ const CandidateApplyPage = ({ job, onBack }) => {
     const handleFinalSubmit = async () => {
         setIsSubmitting(true);
         try {
+            // Build override object that includes resume_filename so the backend can store it
+            const overridePayload = parsedResumeFilename
+                ? { resume_data: parsedResumeData, resume_filename: parsedResumeFilename }
+                : parsedResumeData;
+
             const res = await apiService.applyToJob(
                 job._id,
                 formData.name,
                 formData.email,
                 null, // No need to re-upload file if we have parsed data override
                 formData.answers,
-                parsedResumeData
+                overridePayload
             );
             setResult(res);
             setStep(4);
@@ -367,16 +377,16 @@ const CandidateApplyPage = ({ job, onBack }) => {
                 </div>
 
                 <div className="analysis-cta" style={{ marginTop: '2.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <button 
-                        className="btn btn-primary w-full" 
+                    <button
+                        className="btn btn-primary w-full"
                         onClick={handleFinalSubmit}
                         style={{ height: '56px', fontSize: '1.1rem' }}
                         disabled={isSubmitting}
                     >
                         {isSubmitting ? 'Submitting Application...' : 'Apply Now with this Match'}
                     </button>
-                    <button 
-                        className="btn btn-ghost w-full" 
+                    <button
+                        className="btn btn-ghost w-full"
                         onClick={() => setStep(useMaster ? 1 : 2)}
                     >
                         I want to edit my resume to improve this score

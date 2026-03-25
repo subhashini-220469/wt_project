@@ -11,3 +11,4 @@ numpy
 scipy
 python-multipart
 aiosmtplib
+fpdf2

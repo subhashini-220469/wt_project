@@ -20,7 +20,14 @@ export const apiService = {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(jobData)
         });
-        if (!res.ok) throw new Error("Job posting failed");
+        if (!res.ok) {
+            let errMsg = "Job posting failed";
+            try {
+                const errData = await res.json();
+                errMsg = errData.detail || errMsg;
+            } catch (e) {}
+            throw new Error(errMsg);
+        }
         return res.json();
     },
     parseResume: async (file) => {

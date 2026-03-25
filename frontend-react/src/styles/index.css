@@ -797,6 +797,88 @@ input:focus, textarea:focus {
     color: var(--primary);
 }
 
+/* Custom Styles for Dashboard Detail View */
+.candidates-scroll-table {
+    overflow-x: auto;
+    margin-top: 1rem;
+}
+
+.minimal-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 8px; /* Vertical gap between rows */
+}
+
+.minimal-table th {
+    text-align: left;
+    padding: 0 1rem 0.75rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+}
+
+.minimal-table td {
+    background: var(--card-bg);
+    padding: 1rem;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+}
+
+.minimal-table td:first-child {
+    border-left: 1px solid var(--border-color);
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
+}
+
+.minimal-table td:last-child {
+    border-right: 1px solid var(--border-color);
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+
+.rank-badge {
+    width: 32px;
+    height: 32px;
+    background: var(--secondary);
+    color: var(--primary);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.85rem;
+}
+
+.candidate-info-cell {
+    display: flex;
+    flex-direction: column;
+}
+
+.candidate-info-cell strong {
+    font-size: 0.95rem;
+    color: var(--text-main);
+}
+
+.empty-detailed-state {
+    padding: 4rem 2rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    background: var(--secondary);
+    border-radius: 20px;
+    color: var(--text-muted);
+}
+
+.score-badge-detail {
+    font-variant-numeric: tabular-nums;
+    font-size: 1.1rem;
+}
+
 @media (max-width: 768px) {
     .sidebar {
         width: 80px;

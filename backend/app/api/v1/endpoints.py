@@ -11,6 +11,10 @@ from ...models.models import ResumeData, JDData, ScoringResult, JobPosting, Noti
 from bson import ObjectId
 from pydantic import BaseModel
 import datetime
+from fastapi.responses import FileResponse
+import os
+
+UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "uploads")
 
 router = APIRouter()
 
@@ -377,3 +381,172 @@ async def mark_notification_read(notif_id: str):
     except Exception as e:
         print(f"Error marking notification read: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/resumes/download/{filename}")
+async def download_resume(filename: str):
+    file_path = os.path.join(UPLOAD_DIR, filename)
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    
+    # If the original file is missing from disk (wiped or seeded data), gracefully fallback to DOC generation
+    # First, find the application ID associated with this filename
+    record = await db.db.resumes.find_one({"resume_filename": filename})
+    if record:
+        return await generate_resume_doc(str(record["_id"]))
+    
+    raise HTTPException(status_code=404, detail="Resume file not found")
+
+
+@router.get("/resumes/generate-doc/{application_id}")
+async def generate_resume_doc(application_id: str):
+    """Generate a formatted Word Document from the stored parsed resume data."""
+    try:
+        from io import BytesIO
+        from fastapi.responses import StreamingResponse
+        from docx import Document
+        from docx.shared import Inches, Pt
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
+
+        record = await db.db.resumes.find_one({"_id": ObjectId(application_id)})
+        if not record:
+            raise HTTPException(status_code=404, detail="Application record not found")
+
+        rd = record.get("resume_data", {})
+        score = record.get("score", {})
+        candidate_name = record.get("candidate_name", rd.get("name", "Candidate")) or "Candidate"
+        candidate_email = record.get("candidate_email", rd.get("email", "")) or ""
+
+        def safe(val):
+            return str(val) if val is not None else ""
+
+        doc = Document()
+
+        # Header
+        title = doc.add_paragraph()
+        title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        run = title.add_run(safe(candidate_name))
+        run.bold = True
+        run.font.size = Pt(22)
+
+        contact_parts = []
+        if candidate_email:
+            contact_parts.append(candidate_email)
+        if rd.get("phone"):
+            contact_parts.append(rd["phone"])
+        if rd.get("location"):
+            contact_parts.append(rd["location"])
+
+        if contact_parts:
+            subtitle = doc.add_paragraph()
+            subtitle.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            import docx
+            s_run = subtitle.add_run(safe(" | ".join(contact_parts)))
+            s_run.font.size = Pt(10)
+            s_run.font.color.rgb = docx.shared.RGBColor(100, 116, 139)
+
+        doc.add_paragraph("_" * 60).alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+        # ATS Banner
+        total_score = score.get("total_score", 0) or 0
+        skill_score = score.get("skill_score", 0) or 0
+        exp_score   = score.get("experience_score", 0) or 0
+
+        score_p = doc.add_paragraph()
+        score_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        r1 = score_p.add_run(f"ATS Match Score: {total_score:.1f}%  |  ")
+        r1.bold = True
+        score_p.add_run(f"Skills: {skill_score:.1f}%  |  Experience: {exp_score:.1f}%")
+
+        doc.add_paragraph("_" * 60).alignment = WD_ALIGN_PARAGRAPH.CENTER
+        doc.add_paragraph()
+
+        def add_section(heading):
+            import docx
+            h = doc.add_heading(heading, level=2)
+            h.runs[0].font.color.rgb = docx.shared.RGBColor(30, 41, 59)
+
+        # Summary
+        summary = rd.get("summary", "")
+        if summary:
+            add_section("Professional Summary")
+            doc.add_paragraph(summary)
+
+        # Skills
+        skills = rd.get("skills", [])
+        if skills:
+            add_section("Skills")
+            skills_text = " • ".join(skills) if isinstance(skills, list) else str(skills)
+            doc.add_paragraph(skills_text)
+
+        # Experience
+        experience = rd.get("experience", [])
+        if experience:
+            add_section("Work Experience")
+            if isinstance(experience, list):
+                for exp in experience:
+                    if isinstance(exp, dict):
+                        title_line = exp.get("title", "")
+                        if exp.get("company"):
+                            title_line += f"  --  {exp['company']}"
+                        if exp.get("duration") or exp.get("years"):
+                            title_line += f"  ({exp.get('duration') or exp.get('years', '')})"
+                        p = doc.add_paragraph()
+                        p.add_run(safe(title_line)).bold = True
+                        if exp.get("description"):
+                            doc.add_paragraph(str(exp["description"]))
+                    else:
+                        doc.add_paragraph(str(exp))
+            else:
+                doc.add_paragraph(str(experience))
+
+        # Education
+        education = rd.get("education", [])
+        edu_level  = rd.get("education_level", "")
+        if education or edu_level:
+            add_section("Education")
+            if isinstance(education, list):
+                for edu in education:
+                    if isinstance(edu, dict):
+                        edu_line = edu.get("degree", "")
+                        if edu.get("institution"):
+                            edu_line += f"  --  {edu['institution']}"
+                        if edu.get("year"):
+                            edu_line += f"  ({edu['year']})"
+                        p = doc.add_paragraph()
+                        p.add_run(safe(edu_line)).bold = True
+                    else:
+                        doc.add_paragraph(str(edu))
+            elif education:
+                doc.add_paragraph(str(education))
+            if edu_level:
+                doc.add_paragraph(f"Highest Qualification: {edu_level}")
+
+        # Certifications
+        certs = rd.get("certifications", [])
+        if certs:
+            add_section("Certifications")
+            if isinstance(certs, list):
+                for c in certs:
+                    doc.add_paragraph(str(c))
+            else:
+                doc.add_paragraph(str(certs))
+
+        # Produce Bytes
+        buffer = BytesIO()
+        doc.save(buffer)
+        buffer.seek(0)
+        
+        import urllib.parse
+        safe_name = urllib.parse.quote(safe(candidate_name).replace(" ", "_"))
+        
+        return StreamingResponse(
+            buffer,
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            headers={
+                "Content-Disposition": f'attachment; filename="{safe_name}_Analysis.docx"'
+            }
+        )
+    except Exception as e:
+        import traceback
+        tb = traceback.format_exc()
+        raise HTTPException(status_code=500, detail=str(e) + "\n" + tb)

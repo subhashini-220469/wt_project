@@ -324,6 +324,92 @@ const DashboardPage = ({ userId }) => {
                                 />
                             </div>
                         </div>
+
+                        {/* Top Candidates Section */}
+                        <div className="candidates-detail-section" style={{ marginTop: '2.5rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+                                <h4 style={{ fontSize: '1.25rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <Trophy size={20} className="text-orange" />
+                                    Top Candidates ({'>'}70%)
+                                </h4>
+                                <span className="text-muted text-sm">{candidates.filter(c => (c.score?.total_score || 0) >= 70).length} found</span>
+                            </div>
+
+                            {fetchingCandidates ? (
+                                <div className="text-center py-8">
+                                    <Loader2 className="spin text-primary" size={32} />
+                                    <p className="text-muted mt-2">Fetching candidate data...</p>
+                                </div>
+                            ) : candidates.filter(c => (c.score?.total_score || 0) >= 70).length > 0 ? (
+                                <div className="candidates-scroll-table">
+                                    <table className="minimal-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Rank</th>
+                                                <th>Candidate</th>
+                                                <th>Match Score</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {candidates
+                                                .filter(c => (c.score?.total_score || 0) >= 70)
+                                                .map((candidate, idx) => (
+                                                    <tr key={candidate._id}>
+                                                        <td>
+                                                            <div className="rank-badge">#{idx + 1}</div>
+                                                        </td>
+                                                        <td>
+                                                            <div className="candidate-info-cell">
+                                                                <strong>{candidate.candidate_name || candidate.resume_data?.name || 'Unknown'}</strong>
+                                                                <span className="text-muted text-xs">{candidate.candidate_email || candidate.resume_data?.email}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div className="score-badge-detail" style={{ color: 'var(--primary)', fontWeight: 700 }}>
+                                                                {(candidate.score?.total_score || 0).toFixed(1)}%
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                                {/* Single "Resume" button — original PDF if available, else AI-generated from parsed data */}
+                                                                <a
+                                                                    href={
+                                                                        candidate.resume_filename
+                                                                            ? `http://localhost:8000/resumes/download/${candidate.resume_filename}`
+                                                                            : `http://localhost:8000/resumes/generate-doc/${candidate._id}`
+                                                                    }
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="btn btn-sm btn-outline"
+                                                                    title={candidate.resume_filename ? "View uploaded resume" : "View AI-parsed resume document"}
+                                                                >
+                                                                    <Download size={16} /> Resume
+                                                                </a>
+
+                                                                <button 
+                                                                    className="btn btn-sm btn-primary-light"
+                                                                    onClick={() => {
+                                                                        const skills = candidate.resume_data?.skills?.slice(0, 8).join(", ") || "None listed";
+                                                                        alert(`Candidate: ${candidate.candidate_name || candidate.resume_data?.name}\nTop Skills: ${skills}\nEducation: ${candidate.resume_data?.education_level || "Unknown"}`);
+                                                                    }}
+                                                                >
+                                                                    <Users size={14} /> Profile
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <div className="empty-detailed-state">
+                                    <AlertCircle size={40} className="text-muted" />
+                                    <p>No candidates reached the 70% threshold yet.</p>
+                                </div>
+                            )}
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>
