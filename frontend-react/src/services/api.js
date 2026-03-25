@@ -128,5 +128,12 @@ export const apiService = {
         });
         if (!res.ok) throw new Error("Failed to save profile to database");
         return res.json();
+    },
+    notifyRejected: async (jdId) => {
+        const res = await fetch(`${API_BASE}/notify-rejected/${jdId}`, {
+            method: 'POST'
+        });
+        if (!res.ok) throw new Error("Failed to notify rejected candidates");
+        return res.json();
     }
 };

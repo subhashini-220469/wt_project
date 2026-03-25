@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Search, ChevronRight, Mail, Edit3, Loader2, RefreshCw, PartyPopper } from 'lucide-react';
+import { Search, ChevronRight, Mail, Edit3, Loader2, RefreshCw, PartyPopper, UserX } from 'lucide-react';
 
 const AutomationPage = ({
     jdsList,
@@ -15,7 +15,9 @@ const AutomationPage = ({
     handleRetry,
     setShowEditModal,
     allFinished,
-    formatDate
+    formatDate,
+    isNotifyingRejected,
+    handleNotifyRejected
 }) => {
     return (
         <motion.section
@@ -115,14 +117,25 @@ const AutomationPage = ({
                                 </div>
                             </div>
 
-                            <div className="automation-actions">
+                            <div className="automation-actions" style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
                                 <button
                                     className="btn btn-primary btn-large w-full"
                                     onClick={handleSendBroadcast}
                                     disabled={isSendingEmails || selectedCandidates.length === 0}
+                                    style={{ flex: 2 }}
                                 >
                                     {isSendingEmails ? <Loader2 className="spin" /> : <Mail size={18} />}
-                                    {isSendingEmails ? 'Broadcasting Invitations...' : `Send Broadcast (${selectedCandidates.length})`}
+                                    {isSendingEmails ? 'Broadcasting...' : `Send Broadcast (${selectedCandidates.length})`}
+                                </button>
+                                
+                                <button
+                                    className="btn btn-outline btn-large w-full"
+                                    onClick={handleNotifyRejected}
+                                    disabled={isNotifyingRejected || isSendingEmails}
+                                    style={{ flex: 1, borderColor: '#ef4444', color: '#ef4444' }}
+                                >
+                                    {isNotifyingRejected ? <Loader2 className="spin" /> : <UserX size={18} />}
+                                    {isNotifyingRejected ? 'Notifying...' : 'Notify Rejected Candidates'}
                                 </button>
                             </div>
 
