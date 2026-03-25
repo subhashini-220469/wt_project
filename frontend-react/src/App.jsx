@@ -121,8 +121,6 @@ function App() {
                 .then(data => {
                     if (Array.isArray(data)) {
                         setCandidatesForJd(data);
-<<<<<<< Updated upstream
-=======
 
                         // Sync statuses with Backend (already interviewed candidates are 'success')
                         const initialStatuses = {};
@@ -133,7 +131,6 @@ function App() {
                         });
                         setCandidateStatuses(initialStatuses);
 
->>>>>>> Stashed changes
                         const shortlisted = data
                             .filter(c => {
                                 const score = c.score?.total_score ?? c.score ?? 0;
@@ -141,9 +138,6 @@ function App() {
                             })
                             .map(c => c.resume_data?.email)
                             .filter(email => !!email);
-<<<<<<< Updated upstream
-                        setSelectedCandidates(shortlisted);
-=======
 
                         setSelectedCandidates(shortlisted);
 
@@ -158,7 +152,6 @@ function App() {
                         } else {
                             setAllFinished(false);
                         }
->>>>>>> Stashed changes
                     }
                 })
                 .catch(err => console.error("Failed to fetch results", err));
@@ -184,8 +177,6 @@ function App() {
         }
     }, [userRole]);
 
-<<<<<<< Updated upstream
-=======
     // Notification Fetching
     useEffect(() => {
         const email = localStorage.getItem('userEmail');
@@ -330,7 +321,6 @@ function App() {
 
     const unreadCount = notifications.filter(n => !n.is_read).length;
 
->>>>>>> Stashed changes
     // Update document title dynamically based on active tab
     useEffect(() => {
         const titles = {
@@ -478,20 +468,12 @@ function App() {
 
                 {/* 2. Auth Page (Redirect to app if already logged in) */}
                 <Route path="/auth" element={
-<<<<<<< Updated upstream
-                    userRole ? <Navigate to="/app" replace /> : 
-                    <AuthPage onLoginSuccess={(role) => {
-                        handleRoleSelect(role === 'hr' ? 'employer' : 'employee');
-                        navigate('/app');
-                    }} />
-=======
                     userRole ? <Navigate to="/app" replace /> :
                         <AuthPage onLoginSuccess={(role, uid) => {
                             handleRoleSelect(role === 'hr' ? 'employer' : 'employee');
                             if (uid) setUserId(uid);
                             navigate('/app');
                         }} />
->>>>>>> Stashed changes
                 } />
 
                 {/* 3. The Web App (Protected Area) */}
@@ -528,8 +510,6 @@ function App() {
                                                                         'Email Automation'}
                                     </h1>
                                     <div className="header-right">
-<<<<<<< Updated upstream
-=======
                                         {userRole === 'employee' && (
                                             <div className="notification-bell-wrapper" ref={notificationRef}>
                                                 <button
@@ -660,7 +640,6 @@ function App() {
                                                 </AnimatePresence>
                                             </div>
                                         )}
->>>>>>> Stashed changes
                                         <div className="user-profile-shortcut" onClick={() => setActiveTab('profile')}>
                                             <div className="avatar-square initials-avatar">
                                                 {getInitials(profileName)}
@@ -698,16 +677,12 @@ function App() {
 
                                         {userRole === 'employee' && (
                                             <>
-<<<<<<< Updated upstream
-                                                {activeTab === 'discover' && <JobDiscoveryPage onApply={handleApplyJob} />}
-=======
                                                 {activeTab === 'discover' && <JobDiscoveryPage
                                                     onApply={handleApplyJob}
                                                     targetJobId={pendingNotifJobId}
                                                     targetAction={pendingNotifAction}
                                                     onTargetConsumed={() => { setPendingNotifJobId(null); setPendingNotifAction(null); }}
                                                 />}
->>>>>>> Stashed changes
                                                 {activeTab === 'resume' && <ResumeUploadPage />}
                                                 {activeTab === 'apply' && selectedJobToApply && (
                                                     <CandidateApplyPage
