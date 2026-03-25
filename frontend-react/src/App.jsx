@@ -78,6 +78,7 @@ function App() {
     const [showEditModal, setShowEditModal] = useState(false);
     const [candidateStatuses, setCandidateStatuses] = useState({});
     const [allFinished, setAllFinished] = useState(false);
+    const [isNotifyingRejected, setIsNotifyingRejected] = useState(false);
 
     // Theme State
     const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -409,6 +410,20 @@ function App() {
         setIsSendingEmails(false);
     };
 
+    const handleNotifyRejected = async () => {
+        if (!selectedJd) return;
+        setIsNotifyingRejected(true);
+        try {
+            const res = await apiService.notifyRejected(selectedJd._id);
+            alert(res.message || "Rejection notifications started.");
+        } catch (error) {
+            console.error(error);
+            alert("Failed to start rejection notifications.");
+        } finally {
+            setIsNotifyingRejected(false);
+        }
+    };
+
     const toggleCandidate = (email) => {
         if (isSendingEmails) return;
         setSelectedCandidates(prev =>
@@ -677,6 +692,8 @@ function App() {
                                                         setShowEditModal={setShowEditModal}
                                                         allFinished={allFinished}
                                                         formatDate={formatDate}
+                                                        isNotifyingRejected={isNotifyingRejected}
+                                                        handleNotifyRejected={handleNotifyRejected}
                                                     />
                                                 )}
                                             </>

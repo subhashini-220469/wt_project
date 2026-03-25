@@ -18,8 +18,27 @@ class ATSController:
             else:
                 raise HTTPException(status_code=400, detail="Unsupported format")
             
-            resume_dict = await LLMParser.parse_resume(text)
-            resume_data = ResumeData(**resume_dict)
+            try:
+                resume_dict = await LLMParser.parse_resume(text)
+                resume_data = ResumeData(**resume_dict)
+                print("Successfully parsed resume with AI")
+            except Exception as llm_err:
+                print(f"Warning: AI resume parsing failed: {llm_err}")
+                # Create a minimal fallback ResumeData
+                resume_dict = {
+                    "name": file.filename.split('.')[0],
+                    "email": "not-found@example.com",
+                    "phone": "N/A",
+                    "location": "N/A",
+                    "linkedin": "N/A",
+                    "skills": [],
+                    "experience_years": 0.0,
+                    "recent_jobs": [],
+                    "projects": [],
+                    "education_level": "Bachelors",
+                    "formatting_score": 10.0
+                }
+                resume_data = ResumeData(**resume_dict)
             
             # Optionally store this "Profile" in a master collection
             profile_record = {
@@ -31,15 +50,18 @@ class ATSController:
             
             return {
                 "name": resume_data.name,
-                "resume_data": resume_data.model_dump()
+                "resume_data": resume_data.model_dump(),
+                "ai_status": "partially_successful_fallback" if "llm_err" in locals() else "success"
             }
         except Exception as e:
-            print(f"Error parsing resume: {e}")
+            print(f"Error in parse_resume: {e}")
             raise HTTPException(status_code=500, detail=str(e))
 
     @staticmethod
     async def get_profile(email: str):
         try:
+            if db.db is None:
+                await db.connect_db()
             profile = await db.db.profiles.find_one({"email": email})
             if profile:
                 profile["_id"] = str(profile["_id"])
@@ -52,6 +74,8 @@ class ATSController:
     @staticmethod
     async def upsert_profile(email: str, profile_data: dict):
         try:
+            if db.db is None:
+                await db.connect_db()
             # Ensure email is in the data
             profile_data["email"] = email
             
@@ -70,13 +94,31 @@ class ATSController:
     async def apply_to_job(job_id: str, name: str, email: str, file: UploadFile, screening_answers: dict, resume_data_override: dict = None):
         # 1. Fetch Job from DB to get structured_jd
         from bson import ObjectId
-        job = await db.db.jobs.find_one({"_id": ObjectId(job_id)})
+        if db.db is None:
+            await db.connect_db()
+            
+        try:
+            obj_id = ObjectId(job_id)
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid Job ID format")
+
+        job = await db.db.jobs.find_one({"_id": obj_id})
         if not job:
             raise HTTPException(status_code=404, detail="Job not found")
         
         jd_data_dict = job.get("structured_jd")
         if not jd_data_dict:
-            jd_data_dict = await LLMParser.parse_jd(job["description"])
+            try:
+                jd_data_dict = await LLMParser.parse_jd(job["description"])
+            except Exception as jd_llm_err:
+                print(f"Warning: AI JD parsing failed: {jd_llm_err}")
+                jd_data_dict = {
+                    "job_title": job.get("job_title", "Untitled Job"),
+                    "required_skills": [],
+                    "min_experience_years": 0.0,
+                    "role_description": (job.get("description") or "")[:200],
+                    "education_requirements": "Bachelors"
+                }
         
         jd_data = JDData(**jd_data_dict)
 
@@ -97,8 +139,27 @@ class ATSController:
             else:
                 raise HTTPException(status_code=400, detail="Unsupported format")
             
-            resume_dict = await LLMParser.parse_resume(text)
-            resume_data = ResumeData(**resume_dict)
+            try:
+                resume_dict = await LLMParser.parse_resume(text)
+                resume_data = ResumeData(**resume_dict)
+                print("Successfully parsed resume with AI during application")
+            except Exception as llm_err:
+                print(f"Warning: AI resume parsing failed during application: {llm_err}")
+                # Create a minimal fallback ResumeData
+                resume_dict = {
+                    "name": name, # Use provided name
+                    "email": email, # Use provided email
+                    "phone": "N/A",
+                    "location": "N/A",
+                    "linkedin": "N/A",
+                    "skills": [],
+                    "experience_years": 0.0,
+                    "recent_jobs": [],
+                    "projects": [],
+                    "education_level": "Bachelors",
+                    "formatting_score": 10.0
+                }
+                resume_data = ResumeData(**resume_dict)
 
         # 3. Final polish on resume data
         resume_data.name = name

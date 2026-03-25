@@ -1,13 +1,10 @@
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, BackgroundTasks
-from typing import List, Optional
-import datetime
-import json
-from ...controllers.ats_controller import ATSController
-from ...db.database import db
-from ...services.mailer import Mailer
-from ...services.scoring import ScoringEngine
-from ...services.extraction import LLMParser
-from ...models.models import ResumeData, JDData, ScoringResult, JobPosting, Notification
+from typing import List, Optional, Dict
+from app.controllers.ats_controller import ATSController
+from app.db.database import db
+from app.services.mailer import Mailer
+from app.services.scoring import ScoringEngine
+from app.models.models import ResumeData, JDData, ScoringResult, JobPosting
 from bson import ObjectId
 from pydantic import BaseModel
 import datetime
@@ -17,10 +14,20 @@ router = APIRouter()
 async def process_job_requirements(job_id: str, description: str):
     """Background task to extract structured requirements from JD using AI."""
     try:
-        print(f"Background: Starting JD parsing for Job {job_id}...")
-        structured_dict = await LLMParser.parse_jd(description)
-        # Validate data
-        validated_jd = JDData(**structured_dict)
+        # Check if DB is initialized
+        if db.db is None:
+            await db.connect_db()
+            
+        # Try to parse JD with LLM for structured requirements
+        try:
+            from app.services.extraction import LLMParser
+            structured_dict = await LLMParser.parse_jd(job_post.description)
+            if structured_dict:
+                job_post.structured_jd = JDData(**structured_dict)
+                print("Successfully parsed JD with AI")
+        except Exception as llm_err:
+            print(f"Warning: AI JD parsing failed: {llm_err}")
+            # Job still gets posted even if AI fails
         
         # update the job record
         await db.db.jobs.update_one(
@@ -77,7 +84,9 @@ async def create_job(job_post: JobPosting, background_tasks: BackgroundTasks):
 
 
 @router.get("/jobs")
-async def get_jobs(posted_by: Optional[str] = None):
+async def get_jobs(posted_by: str | None = None):
+    if db.db is None:
+        await db.connect_db()
     query = {}
     if posted_by:
         query["posted_by"] = posted_by
@@ -102,6 +111,8 @@ async def get_jobs(posted_by: Optional[str] = None):
 
 @router.get("/results/{jd_id}")
 async def get_results(jd_id: str):
+    if db.db is None:
+        await db.connect_db()
     cursor = db.db.resumes.find({"jd_id": jd_id})
     resumes = await cursor.to_list(length=100)
     for r in resumes:
@@ -114,6 +125,8 @@ async def get_results(jd_id: str):
 @router.get("/my-applications/{email}")
 async def get_my_applications(email: str):
     try:
+        if db.db is None:
+            await db.connect_db()
         cursor = db.db.resumes.find({"candidate_email": email})
         apps = await cursor.to_list(length=50)
         for a in apps:
@@ -126,6 +139,8 @@ async def get_my_applications(email: str):
 @router.get("/jds")
 async def get_all_jds(posted_by: Optional[str] = None):
     # Keep this for backward compatibility or general list
+    if db.db is None:
+        await db.connect_db()
     query = {}
     if posted_by:
         query["posted_by"] = posted_by
@@ -174,18 +189,51 @@ async def apply_to_job(
 @router.post("/rescore/{job_id}")
 async def rescore_job(job_id: str, resume_data: ResumeData):
     try:
-        job = await db.db.jobs.find_one({"_id": ObjectId(job_id)})
+        if db.db is None:
+            await db.connect_db()
+
+        try:
+            obj_id = ObjectId(job_id)
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid Job ID format")
+
+        job = await db.db.jobs.find_one({"_id": obj_id})
         if not job:
             raise HTTPException(status_code=404, detail="Job not found")
         
         jd_dict = job.get("structured_jd")
         if not jd_dict:
             # Fallback if JD wasn't parsed (e.g. old data)
-            jd_dict = await LLMParser.parse_jd(job.get("description", ""))
+            from app.services.extraction import LLMParser
+            try:
+                jd_dict = await LLMParser.parse_jd(job.get("description", ""))
+            except Exception as jd_llm_err:
+                print(f"Warning: AI JD parsing failed in rescore: {jd_llm_err}")
+                jd_dict = {
+                    "job_title": job.get("job_title", "Untitled Job"),
+                    "required_skills": [],
+                    "min_experience_years": 0.0,
+                    "role_description": (job.get("description") or "")[:200],
+                    "education_requirements": "Bachelors"
+                }
+        
+        try:
+            jd_data = JDData(**jd_dict)
+        except Exception as validation_err:
+            print(f"Validation error for JDData: {validation_err}")
+            # Emergency fallback
+            jd_data = JDData(
+                job_title=job.get("job_title", "Untitled Job"),
+                required_skills=[],
+                min_experience_years=0.0,
+                role_description=(job.get("description") or "")[:200],
+                education_requirements="Bachelors"
+            )
 
-        jd_data = JDData(**jd_dict)
         score_res = ScoringEngine.score_resume(resume_data, jd_data)
         return score_res
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"Error in /rescore: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -193,6 +241,8 @@ async def rescore_job(job_id: str, resume_data: ResumeData):
 @router.delete("/jobs/{job_id}")
 async def delete_job(job_id: str):
     try:
+        if db.db is None:
+            await db.connect_db()
         result = await db.db.jobs.delete_one({"_id": ObjectId(job_id)})
         if result.deleted_count == 0:
             raise HTTPException(status_code=404, detail="Job not found")
@@ -206,6 +256,8 @@ async def delete_job(job_id: str):
 @router.patch("/jobs/{job_id}/status")
 async def update_job_status(job_id: str, status: str = Form(...)):
     try:
+        if db.db is None:
+            await db.connect_db()
         result = await db.db.jobs.update_one(
             {"_id": ObjectId(job_id)},
             {"$set": {"status": status}}
@@ -226,6 +278,8 @@ class EmailRequest(BaseModel):
 @router.get("/analytics/jobs")
 async def get_job_analytics(posted_by: Optional[str] = None):
     try:
+        if db.db is None:
+            await db.connect_db()
         # Get jobs filtered by HR
         query = {}
         if posted_by:
@@ -272,11 +326,53 @@ async def get_job_analytics(posted_by: Optional[str] = None):
         print(f"Error in analytics: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.post("/notify-rejected/{jd_id}")
+async def notify_rejected_candidates(jd_id: str, background_tasks: BackgroundTasks):
+    if db.db is None:
+        await db.connect_db()
+        
+    # Get candidates (score < 70) for this job
+    # Note: Use filters directly in MongoDB if it gets large
+    cursor = db.db.resumes.find({"jd_id": jd_id})
+    resumes = await cursor.to_list(length=1000)
+    
+    rejected_to_notify = []
+    for r in resumes:
+        # Check both nested score.total_score or flat score
+        score_data = r.get("score", {})
+        if isinstance(score_data, dict):
+            score_val = score_data.get("total_score", 0)
+        else:
+            score_val = score_data
+            
+        if score_val < 70:
+            rejected_to_notify.append({
+                "email": r["candidate_email"],
+                "name": r["candidate_name"],
+                "job_title": r.get("job_title", "Position Applied")
+            })
+            
+    if not rejected_to_notify:
+        print(f"No rejected candidates found for JD {jd_id} (Score < 70)")
+        return {"message": "No candidates found with score < 70%."}
+        
+    print(f"Queueing {len(rejected_to_notify)} rejection emails for JD {jd_id}")
+    # Queue background task
+    background_tasks.add_task(
+        Mailer.send_rejection_emails, 
+        rejected_to_notify
+    )
+    
+    return {"message": f"Successfully started task to notify {len(rejected_to_notify)} rejected candidates."}
+
 @router.post("/send-emails")
 async def send_bulk_emails(req: EmailRequest, background_tasks: BackgroundTasks):
-    if not req.recipient_emails:
+    if req.recipient_emails is None or not req.recipient_emails:
         raise HTTPException(status_code=400, detail="No recipients provided")
     
+    if db.db is None:
+        await db.connect_db()
+        
     # Update status to 'interviewed' for these candidates
     await db.db.resumes.update_many(
         {"jd_id": req.jd_id, "resume_data.email": {"$in": req.recipient_emails}},

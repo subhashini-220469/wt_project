@@ -130,34 +130,11 @@ export const apiService = {
         if (!res.ok) throw new Error("Failed to save profile to database");
         return res.json();
     },
-    fetchNotifications: async (email) => {
-        const res = await fetch(`${NODE_API_BASE}/notifications?email=${email}`);
-        if (!res.ok) throw new Error("Failed to fetch notifications");
-        return res.json();
-    },
-    markNotificationRead: async (notifId) => {
-        const res = await fetch(`${NODE_API_BASE}/notifications/${notifId}/read`, {
-            method: 'PATCH'
+    notifyRejected: async (jdId) => {
+        const res = await fetch(`${API_BASE}/notify-rejected/${jdId}`, {
+            method: 'POST'
         });
-        if (!res.ok) throw new Error("Failed to mark notification as read");
-        return res.json();
-    },
-    markAllNotificationsRead: async (email) => {
-        const res = await fetch(`${NODE_API_BASE}/notifications/mark-all-read`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email })
-        });
-        if (!res.ok) throw new Error("Failed to mark all notifications as read");
-        return res.json();
-    },
-    clearNotifications: async (email) => {
-        const res = await fetch(`${NODE_API_BASE}/notifications/clear-all`, {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email })
-        });
-        if (!res.ok) throw new Error("Failed to clear notifications");
+        if (!res.ok) throw new Error("Failed to notify rejected candidates");
         return res.json();
     }
 };

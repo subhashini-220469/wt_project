@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Search, ChevronRight, Mail, Edit3, Loader2, RefreshCw, PartyPopper } from 'lucide-react';
+import { Search, ChevronRight, Mail, Edit3, Loader2, RefreshCw, PartyPopper, UserX } from 'lucide-react';
 
 const AutomationPage = ({
     jdsList,
@@ -15,7 +15,9 @@ const AutomationPage = ({
     handleRetry,
     setShowEditModal,
     allFinished,
-    formatDate
+    formatDate,
+    isNotifyingRejected,
+    handleNotifyRejected
 }) => {
     return (
         <motion.section
@@ -115,40 +117,26 @@ const AutomationPage = ({
                                 </div>
                             </div>
 
-                            <div className="automation-actions">
-                                {allFinished ? (
-                                    <motion.div 
-                                        className="completion-banner"
-                                        initial={{ opacity: 0, scale: 0.95 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        style={{ 
-                                            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                                            color: '#fff', 
-                                            padding: '1.25rem',
-                                            borderRadius: '16px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            gap: '12px',
-                                            fontWeight: 800,
-                                            boxShadow: '0 10px 25px -5px rgba(16, 185, 129, 0.3)',
-                                            width: '100%',
-                                            fontSize: '1.1rem'
-                                        }}
-                                    >
-                                        <PartyPopper size={24} /> 
-                                        <span>Successfully Completed!</span>
-                                    </motion.div>
-                                ) : (
-                                    <button
-                                        className="btn btn-primary btn-large w-full"
-                                        onClick={handleSendBroadcast}
-                                        disabled={isSendingEmails || selectedCandidates.length === 0}
-                                    >
-                                        {isSendingEmails ? <Loader2 className="spin" /> : <Mail size={18} />}
-                                        {isSendingEmails ? 'Broadcasting Invitations...' : `Send Broadcast (${selectedCandidates.length})`}
-                                    </button>
-                                )}
+                            <div className="automation-actions" style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+                                <button
+                                    className="btn btn-primary btn-large w-full"
+                                    onClick={handleSendBroadcast}
+                                    disabled={isSendingEmails || selectedCandidates.length === 0}
+                                    style={{ flex: 2 }}
+                                >
+                                    {isSendingEmails ? <Loader2 className="spin" /> : <Mail size={18} />}
+                                    {isSendingEmails ? 'Broadcasting...' : `Send Broadcast (${selectedCandidates.length})`}
+                                </button>
+                                
+                                <button
+                                    className="btn btn-outline btn-large w-full"
+                                    onClick={handleNotifyRejected}
+                                    disabled={isNotifyingRejected || isSendingEmails}
+                                    style={{ flex: 1, borderColor: '#ef4444', color: '#ef4444' }}
+                                >
+                                    {isNotifyingRejected ? <Loader2 className="spin" /> : <UserX size={18} />}
+                                    {isNotifyingRejected ? 'Notifying...' : 'Notify Rejected Candidates'}
+                                </button>
                             </div>
                         </div>
                     )}
