@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Bell, Briefcase, Clock, ChevronRight, Check } from 'lucide-react';
 import { apiService } from '../services/api';
+import '../styles/NotificationsDropdown.css'; // Added stylesheet import
 
 const NotificationsDropdown = ({ userRole, onApplyJob, onViewJob }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -64,54 +65,60 @@ const NotificationsDropdown = ({ userRole, onApplyJob, onViewJob }) => {
         localStorage.setItem('readNotifs', JSON.stringify(allIds));
     };
 
-    const unreadNotifications = notifications.filter(n => !readNotifs.includes(n.job._id + n.type));
-    const unreadCount = unreadNotifications.length;
+    const unreadNotifications = notifications.filter(
+        notif => !readNotifs.includes(notif.job._id + notif.type)
+    );
 
     return (
         <div className="notification-wrapper" ref={dropdownRef}>
-            <button className={`notification-bell-btn ${unreadCount > 0 ? 'has-unread' : ''}`} onClick={toggleDropdown}>
-                <Bell size={20} />
-                {unreadCount > 0 && (
-                    <span className="notification-badge">{unreadCount}</span>
-                )}
+            <button className={`notification-bell-btn ${unreadNotifications.length > 0 ? 'has-unread' : ''}`} onClick={toggleDropdown}>
+                <div className="bell-icon-container">
+                    <Bell size={20} />
+                    {unreadNotifications.length > 0 && (
+                        <span className="notif-badge-premium">{unreadNotifications.length}</span>
+                    )}
+                </div>
             </button>
 
             {isOpen && (
-                <div className="notification-dropdown">
-                    <div className="notification-header mark-read-header">
-                        <h4>Notifications</h4>
-                        {unreadCount > 0 && (
-                            <button className="mark-read-btn" onClick={markAllAsRead}>Mark all read</button>
+                <div className="notifications-dropdown">
+                    <div className="notif-header">
+                        <h3>Notifications</h3>
+                        {unreadNotifications.length > 0 && (
+                            <button className="clear-all-btn" onClick={markAllAsRead}>
+                                <Check size={14} style={{ marginRight: '4px', display: 'inline-block', verticalAlign: 'middle' }} /> Mark all read
+                            </button>
                         )}
                     </div>
-                    <div className="notification-list">
+                    <div className="notif-list-scrollable">
                         {unreadNotifications.length === 0 ? (
-                            <div className="notification-empty">
+                            <div className="notif-empty-state">
+                                <div className="empty-icon-ring">
+                                    <Bell size={32} />
+                                </div>
                                 <p>No new notifications</p>
                             </div>
                         ) : (
                             unreadNotifications.map((notif, idx) => {
                                 const notifId = notif.job._id + notif.type;
-
                                 return (
-                                    <div className="notification-item" key={notifId}>
+                                    <div className={`notification-item type-${notif.type}`} key={idx}>
                                         <div className="notification-icon">
                                             {notif.type === 'new_job' ? (
-                                                <Bell size={18} className="text-teal" />
+                                                <Briefcase size={16} className="text-teal" />
                                             ) : (
-                                                <Clock size={18} className="text-warn" />
+                                                <Clock size={16} className="text-warn" />
                                             )}
                                         </div>
                                         <div className="notification-content">
-                                            <p className="notification-title">{notif.message}</p>
-                                            <p className="notification-meta">📄 Role: {notif.job_title}</p>
-                                            <p className="notification-meta">
+                                            <p className="notification-message">{notif.message}</p>
+                                            <p className="notification-company">📄 {notif.job_title}</p>
+                                            <p className="notification-time">
                                                 {notif.type === 'new_job' ? `📅 Posted: ${notif.time_str}` : `⚠️ Hurry up!`}
                                             </p>
-
-                                            <div className="notification-footer-actions">
+                                            <div className="notification-actions">
                                                 {notif.type === 'new_job' ? (
-                                                    <button className="notification-action-btn" onClick={() => {
+                                                    <button className="btn-outline-primary" onClick={() => {
                                                         if (onViewJob && notif.job) {
                                                             onViewJob(notif.job);
                                                             setIsOpen(false);
@@ -120,7 +127,7 @@ const NotificationsDropdown = ({ userRole, onApplyJob, onViewJob }) => {
                                                         View Job <ChevronRight size={14} />
                                                     </button>
                                                 ) : (
-                                                    <button className="notification-action-btn" onClick={() => {
+                                                    <button className="btn-primary" onClick={() => {
                                                         if (onApplyJob && notif.job) {
                                                             onApplyJob(notif.job);
                                                             setIsOpen(false);
@@ -129,9 +136,8 @@ const NotificationsDropdown = ({ userRole, onApplyJob, onViewJob }) => {
                                                         Apply Now <ChevronRight size={14} />
                                                     </button>
                                                 )}
-
-                                                <button className="mark-item-read-link" onClick={(e) => markAsRead(e, notifId)}>
-                                                    Mark as read
+                                                <button className="btn-icon" onClick={(e) => markAsRead(e, notifId)} title="Mark as read">
+                                                    <Check size={16} />
                                                 </button>
                                             </div>
                                         </div>

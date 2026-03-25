@@ -7,6 +7,8 @@ import Sidebar from './components/Sidebar';
 import ScanningOverlay from './components/ScanningOverlay';
 import EmailModal from './components/EmailModal';
 
+import './styles/AppNotifications.css'; // Add notification styles
+
 // Pages
 import AutomationPage from './pages/AutomationPage';
 import DashboardPage from './pages/DashboardPage';
@@ -29,7 +31,7 @@ function App() {
         const role = localStorage.getItem('userRole');
         const token = localStorage.getItem('accessToken');
         return (role && token) ? role : null;
-    }); 
+    });
     const [activeTab, setActiveTab] = useState(() => localStorage.getItem('activeTab') || 'discover');
     const [selectedJobToApply, setSelectedJobToApply] = useState(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -122,7 +124,7 @@ function App() {
                 .then(data => {
                     if (Array.isArray(data)) {
                         setCandidatesForJd(data);
-                        
+
                         // Sync statuses with Backend (already interviewed candidates are 'success')
                         const initialStatuses = {};
                         data.forEach(c => {
@@ -140,14 +142,14 @@ function App() {
                             .filter(c => initialStatuses[c.resume_data?.email] !== 'success') // Only uncontacted
                             .map(c => c.resume_data?.email)
                             .filter(email => !!email);
-                        
+
                         setSelectedCandidates(shortlisted);
 
                         // Only show "Finished" if:
                         // 1. There was at least one candidate (any score)
                         // 2. ALL of them are already success (SENT)
                         const allCandidatesSent = data.length > 0 && data.every(c => initialStatuses[c.resume_data?.email] === 'success');
-                        
+
                         // OR if we had shortlisted ones once and they are all gone now
                         if (allCandidatesSent) {
                             setAllFinished(true);
@@ -194,7 +196,7 @@ function App() {
                 }
             };
             loadNotifs();
-            
+
             // Poll for new notifications every 60 seconds
             const interval = setInterval(loadNotifs, 60000);
             return () => clearInterval(interval);
@@ -255,41 +257,35 @@ function App() {
 
     const getNotifIcon = (type) => {
         switch (type) {
-            case 'new_job':   return <Briefcase size={18} style={{ color: '#10b981' }} />;
-            case 'deadline':  return <Clock size={18} style={{ color: '#f59e0b' }} />;
-            case 'new_app':   return <UserPlus size={18} style={{ color: '#008ba3' }} />;
+            case 'new_job': return <Briefcase size={18} style={{ color: '#10b981' }} />;
+            case 'deadline': return <Clock size={18} style={{ color: '#f59e0b' }} />;
+            case 'new_app': return <UserPlus size={18} style={{ color: '#008ba3' }} />;
             case 'interview': return <Mail size={18} style={{ color: '#6366f1' }} />;
-            default:          return <Bell size={18} style={{ color: '#718096' }} />;
+            default: return <Bell size={18} style={{ color: '#718096' }} />;
         }
     };
 
     const getNotifIconBg = (type) => {
         switch (type) {
-            case 'new_job':   return 'rgba(16, 185, 129, 0.1)';
-            case 'deadline':  return 'rgba(245, 158, 11, 0.1)';
-            case 'new_app':   return 'rgba(0, 139, 163, 0.1)';
+            case 'new_job': return 'rgba(16, 185, 129, 0.1)';
+            case 'deadline': return 'rgba(245, 158, 11, 0.1)';
+            case 'new_app': return 'rgba(0, 139, 163, 0.1)';
             case 'interview': return 'rgba(99, 102, 241, 0.1)';
-            default:          return 'rgba(113, 128, 150, 0.1)';
+            default: return 'rgba(113, 128, 150, 0.1)';
         }
     };
 
     const getNotifAccent = (type) => {
-        switch (type) {
-            case 'new_job':   return '#10b981';
-            case 'deadline':  return '#f59e0b';
-            case 'new_app':   return '#008ba3';
-            case 'interview': return '#6366f1';
-            default:          return '#718096';
-        }
+        return 'var(--primary)';
     };
 
     const getNotifAction = (n) => {
         switch (n.type) {
-            case 'new_job':   return { label: 'View Job',        tab: 'discover', action: 'view' };
-            case 'deadline':  return { label: 'Apply Now',       tab: 'discover', action: 'apply' };
-            case 'interview': return { label: 'My Applications', tab: 'my-apps',  action: null };
-            case 'new_app':   return { label: 'View Analytics',  tab: 'managed-jobs', action: null };
-            default:          return null;
+            case 'new_job': return { label: 'View Job', tab: 'discover', action: 'view' };
+            case 'deadline': return { label: 'Apply Now', tab: 'discover', action: 'apply' };
+            case 'interview': return { label: 'My Applications', tab: 'my-apps', action: null };
+            case 'new_app': return { label: 'View Analytics', tab: 'managed-jobs', action: null };
+            default: return null;
         }
     };
 
@@ -306,13 +302,27 @@ function App() {
 
     const getRelativeTime = (dateStr) => {
         if (!dateStr) return '';
-        const diff = Date.now() - new Date(dateStr).getTime();
+        // Ensure UTC parsing if the backend date string lacks a 'Z' timezone indicator
+        let parsedStr = dateStr;
+        if (!parsedStr.endsWith('Z') && !parsedStr.includes('+')) {
+            parsedStr += 'Z';
+        }
+
+        const date = new Date(parsedStr);
+        const originalDate = new Date(dateStr);
+        const finalDate = isNaN(date.getTime()) ? originalDate : date;
+
+        let diff = Date.now() - finalDate.getTime();
+
+        // Prevent negative times if there's a minor server clock desync
+        if (diff < 0) diff = 0;
+
         const mins = Math.floor(diff / 60000);
-        if (mins < 1)  return 'Just now';
+        if (mins < 1) return 'Just now';
         if (mins < 60) return `${mins}m ago`;
         const hrs = Math.floor(mins / 60);
-        if (hrs < 24)  return `${hrs}h ago`;
-        return new Date(dateStr).toLocaleDateString([], { month: 'short', day: 'numeric' });
+        if (hrs < 24) return `${hrs}h ago`;
+        return finalDate.toLocaleDateString([], { month: 'short', day: 'numeric' });
     };
 
     const unreadCount = notifications.filter(n => !n.is_read).length;
@@ -465,12 +475,12 @@ function App() {
 
                 {/* 2. Auth Page (Redirect to app if already logged in) */}
                 <Route path="/auth" element={
-                    userRole ? <Navigate to="/app" replace /> : 
-                    <AuthPage onLoginSuccess={(role, uid) => {
-                        handleRoleSelect(role === 'hr' ? 'employer' : 'employee');
-                        if (uid) setUserId(uid);
-                        navigate('/app');
-                    }} />
+                    userRole ? <Navigate to="/app" replace /> :
+                        <AuthPage onLoginSuccess={(role, uid) => {
+                            handleRoleSelect(role === 'hr' ? 'employer' : 'employee');
+                            if (uid) setUserId(uid);
+                            navigate('/app');
+                        }} />
                 } />
 
                 {/* 3. The Web App (Protected Area) */}
@@ -509,7 +519,7 @@ function App() {
                                     <div className="header-right">
                                         {userRole === 'employee' && (
                                             <div className="notification-bell-wrapper" ref={notificationRef}>
-                                                <button 
+                                                <button
                                                     className={`theme-toggle notification-bell-btn ${unreadCount > 0 ? 'has-unread' : ''}`}
                                                     onClick={() => setShowNotifications(!showNotifications)}
                                                 >
@@ -521,7 +531,7 @@ function App() {
 
                                                 <AnimatePresence>
                                                     {showNotifications && (
-                                                        <motion.div 
+                                                        <motion.div
                                                             className="notifications-dropdown card"
                                                             initial={{ opacity: 0, y: 10, scale: 0.95 }}
                                                             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -530,10 +540,9 @@ function App() {
                                                             <div className="notif-header">
                                                                 <h3>🔔 Notifications</h3>
                                                                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                                                    <span className="unread-count-pill">{unreadCount} New</span>
                                                                     {notifications.length > 0 && (
-                                                                        <button className="clear-all-btn" onClick={handleClearAll} title="Clear read notifications">
-                                                                            <Trash2 size={14} />
+                                                                        <button className="clear-all-btn" onClick={handleMarkAllRead} title="Mark all notifications as read" style={{ fontSize: '0.8rem', fontWeight: '600', padding: '4px 8px', color: 'var(--primary)' }}>
+                                                                            Mark all as read
                                                                         </button>
                                                                     )}
                                                                 </div>
@@ -546,43 +555,82 @@ function App() {
                                                                             const accent = getNotifAccent(n.type);
                                                                             const iconBg = getNotifIconBg(n.type);
                                                                             return (
-                                                                            <motion.div 
-                                                                                key={n._id} 
-                                                                                layout
-                                                                                initial={{ x: -20, opacity: 0 }}
-                                                                                animate={{ x: 0, opacity: 1 }}
-                                                                                exit={{ x: 20, opacity: 0 }}
-                                                                                className={`notif-card-new unread type-${n.type}`}
-                                                                                style={{ borderLeftColor: accent }}
-                                                                            >
-                                                                                <div className="notif-icon-circle" style={{ background: iconBg }}>
-                                                                                    {getNotifIcon(n.type)}
-                                                                                </div>
-                                                                                <div className="notif-body">
-                                                                                    <p className="notif-msg">{n.message}</p>
-                                                                                    <div className="notif-meta">
-                                                                                        <Clock size={10} />
-                                                                                        <span>{getRelativeTime(n.created_at)}</span>
+                                                                                <motion.div
+                                                                                    key={n._id}
+                                                                                    layout
+                                                                                    initial={{ x: -20, opacity: 0 }}
+                                                                                    animate={{ x: 0, opacity: 1 }}
+                                                                                    exit={{ x: 20, opacity: 0 }}
+                                                                                    className={`notif-card-new unread type-${n.type}`}
+                                                                                >
+                                                                                    <div className="notif-icon-circle" style={{ background: iconBg }}>
+                                                                                        {getNotifIcon(n.type)}
                                                                                     </div>
-                                                                                    {action && (
-                                                                                        <button
-                                                                                            type="button"
-                                                                                            className="notif-action-btn"
-                                                                                            style={{ color: accent, borderColor: accent }}
-                                                                                            onClick={(e) => {
-                                                                                                e.stopPropagation();
-                                                                                                handleNotifNav(n, action.tab, action.action);
-                                                                                            }}
-                                                                                        >
-                                                                                            {action.label} →
-                                                                                        </button>
-                                                                                    )}
-                                                                                </div>
-                                                                                <div className="notif-action-indicator">
-                                                                                    <div className="unread-dot" style={{ background: accent }}></div>
-                                                                                </div>
-                                                                            </motion.div>
-                                                                        )})}
+                                                                                    <div className="notif-body">
+                                                                                        {n.type === 'new_job' ? (
+                                                                                            <>
+                                                                                                <p className="notif-msg" style={{ marginBottom: '6px' }}>🔔 HR added a new job</p>
+                                                                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '10px' }}>
+                                                                                                    <span style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-main)' }}>
+                                                                                                        📄 Role: {n.job_title || (n.message && n.message.includes(':') ? n.message.split(':')[1].trim() : n.message)}
+                                                                                                    </span>
+                                                                                                    <span style={{ fontSize: '0.8rem', color: 'var(--text-main)', fontWeight: '700' }}>
+                                                                                                        📅 Posted: {getRelativeTime(n.created_at)}
+                                                                                                    </span>
+                                                                                                </div>
+                                                                                            </>
+                                                                                        ) : n.type === 'deadline' ? (
+                                                                                            <>
+                                                                                                <p className="notif-msg" style={{ marginBottom: '6px' }}>⏰ Last date to apply tomorrow</p>
+                                                                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '10px' }}>
+                                                                                                    <span style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-main)' }}>
+                                                                                                        📄 Role: {n.job_title || n.message.replace('⏳ Last day to apply! ', '').replace(' closes tomorrow.', '')}
+                                                                                                    </span>
+                                                                                                    <span style={{ fontSize: '0.85rem', color: 'var(--text-main)', fontWeight: '600' }}>
+                                                                                                        ⚠️ Hurry up!
+                                                                                                    </span>
+                                                                                                </div>
+                                                                                            </>
+                                                                                        ) : (
+                                                                                            <>
+                                                                                                <p className="notif-msg">{n.message}</p>
+                                                                                                <div className="notif-meta">
+                                                                                                    <Clock size={10} />
+                                                                                                    <span>{getRelativeTime(n.created_at)}</span>
+                                                                                                </div>
+                                                                                            </>
+                                                                                        )}
+                                                                                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                                                                            {action && (
+                                                                                                <button
+                                                                                                    type="button"
+                                                                                                    className="notif-action-btn"
+                                                                                                    style={{ color: 'var(--primary)', borderColor: 'var(--primary)' }}
+                                                                                                    onClick={(e) => {
+                                                                                                        e.stopPropagation();
+                                                                                                        handleNotifNav(n, action.tab, action.action);
+                                                                                                    }}
+                                                                                                >
+                                                                                                    {action.label} →
+                                                                                                </button>
+                                                                                            )}
+                                                                                            <button
+                                                                                                type="button"
+                                                                                                className="notif-action-btn"
+                                                                                                style={{ color: 'var(--primary)', borderColor: 'var(--primary)' }}
+                                                                                                onClick={(e) => {
+                                                                                                    e.stopPropagation();
+                                                                                                    handleMarkRead(n._id);
+                                                                                                }}
+                                                                                                title="Mark as read without navigating"
+                                                                                            >
+                                                                                                Mark as read
+                                                                                            </button>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </motion.div>
+                                                                            )
+                                                                        })}
                                                                     </div>
                                                                 ) : (
                                                                     <div className="notif-empty-state">
@@ -636,7 +684,7 @@ function App() {
 
                                         {userRole === 'employee' && (
                                             <>
-                                                {activeTab === 'discover' && <JobDiscoveryPage 
+                                                {activeTab === 'discover' && <JobDiscoveryPage
                                                     onApply={handleApplyJob}
                                                     targetJobId={pendingNotifJobId}
                                                     targetAction={pendingNotifAction}
