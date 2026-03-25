@@ -52,14 +52,48 @@ class Mailer:
             return False
 
     @classmethod
-    async def send_bulk_emails(cls, recipients: list, subject: str, body: str):
+    async def send_bulk_emails(cls, recipients: list, subject: str, body_template: str, jd_id: str = None):
         """
-        Sends emails in a loop. Since it's triggered as a BackgroundTask,
-        it won't block the API response.
+        Sends emails in a loop.
+        Support placeholders: {name}, {company}, {role}
         """
         success_count = 0
+        
+        # Fetch Job Info for {company} and {role}
+        company_name = "our company"
+        job_title = "the position"
+        if jd_id:
+            try:
+                from bson import ObjectId
+                from ..db.database import db
+                job = await db.db.jobs.find_one({"_id": ObjectId(jd_id)})
+                if job:
+                    company_name = job.get("company", company_name)
+                    job_title = job.get("job_title", job_title)
+            except Exception as e:
+                print(f"Error fetching job for bulk email: {e}")
+
         for email in recipients:
-            success = await cls.send_email(email, subject, body)
+            personal_body = body_template
+            
+            # Try to fetch candidate name for {name}
+            name = "Candidate"
+            if jd_id:
+                try:
+                    from ..db.database import db
+                    # Look up candidate by email and job
+                    cand = await db.db.resumes.find_one({"jd_id": jd_id, "candidate_email": email})
+                    if cand:
+                        name = cand.get("candidate_name", name)
+                except Exception:
+                    pass
+            
+            # Replace placeholders
+            personal_body = personal_body.replace("{name}", name)
+            personal_body = personal_body.replace("{company}", company_name)
+            personal_body = personal_body.replace("{role}", job_title)
+
+            success = await cls.send_email(email, subject, personal_body)
             if success:
                 success_count += 1
             # Add a small delay to avoid hitting rate limits

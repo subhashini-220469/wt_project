@@ -17,7 +17,9 @@ const AutomationPage = ({
     allFinished,
     formatDate,
     isNotifyingRejected,
-    handleNotifyRejected
+    handleNotifyRejected,
+    outreachStatus,
+    setOutreachStatus
 }) => {
     return (
         <motion.section
@@ -116,6 +118,41 @@ const AutomationPage = ({
                                     })}
                                 </div>
                             </div>
+
+                            {outreachStatus && (
+                                <motion.div 
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    className={`status-msg-banner ${outreachStatus.type}`}
+                                    style={{ 
+                                        padding: '1rem', 
+                                        borderRadius: '8px', 
+                                        marginBottom: '1rem',
+                                        backgroundColor: outreachStatus.type === 'success' ? '#dcfce7' : outreachStatus.type === 'warning' ? '#fef9c3' : '#fee2e2',
+                                        color: outreachStatus.type === 'success' ? '#166534' : outreachStatus.type === 'warning' ? '#854d0e' : '#991b1b',
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        fontSize: '0.9rem',
+                                        border: `1px solid ${outreachStatus.type === 'success' ? '#bbf7d0' : outreachStatus.type === 'warning' ? '#fde047' : '#fecaca'}`
+                                    }}
+                                >
+                                    <span>{outreachStatus.message}</span>
+                                    <button 
+                                        onClick={() => setOutreachStatus(null)}
+                                        style={{ 
+                                            background: 'rgba(0,0,0,0.1)', 
+                                            border: 'none', 
+                                            borderRadius: '4px', 
+                                            padding: '2px 8px', 
+                                            cursor: 'pointer',
+                                            fontWeight: 'bold'
+                                        }}
+                                    >
+                                        OK
+                                    </button>
+                                </motion.div>
+                            )}
 
                             <div className="automation-actions" style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
                                 <button

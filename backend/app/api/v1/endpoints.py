@@ -406,7 +406,8 @@ async def send_bulk_emails(req: EmailRequest, background_tasks: BackgroundTasks)
         Mailer.send_bulk_emails, 
         req.recipient_emails, 
         req.subject, 
-        req.body
+        req.body,
+        req.jd_id
     )
     
     return {"message": f"Bulk email task started for {len(req.recipient_emails)} candidates."}
