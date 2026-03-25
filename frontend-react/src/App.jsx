@@ -73,12 +73,13 @@ function App() {
     const [candidatesForJd, setCandidatesForJd] = useState([]);
     const [selectedCandidates, setSelectedCandidates] = useState([]);
     const [emailSubject, setEmailSubject] = useState("Interview Shortlist Invitation");
-    const [emailBody, setEmailBody] = useState("Congratulations you have been shortlisted for interview ,interview timinings will be scheduled within a week");
+    const [emailBody, setEmailBody] = useState("Dear {name},\n\nCongratulations! You have been shortlisted for an interview at {company} for the {role} position. Our team will reach out within a week to schedule the next steps.\n\nBest regards,\nTalent Acquisition Team");
     const [isSendingEmails, setIsSendingEmails] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [candidateStatuses, setCandidateStatuses] = useState({});
     const [allFinished, setAllFinished] = useState(false);
     const [isNotifyingRejected, setIsNotifyingRejected] = useState(false);
+    const [outreachStatus, setOutreachStatus] = useState(null); // { message, type }
 
     // Theme State
     const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -384,15 +385,27 @@ function App() {
     };
 
     const handleSendBroadcast = async () => {
-        if (selectedCandidates.length === 0) return alert("Select at least one candidate.");
+        // Auto-tick shortlisted candidates (70+) before sending
+        const shortlisted = candidatesForJd
+            .filter(c => (c.score?.total_score ?? c.score ?? 0) >= 70)
+            .map(c => c.resume_data?.email)
+            .filter(e => !!e);
+        
+        setSelectedCandidates(shortlisted);
+
+        if (shortlisted.length === 0) {
+            setOutreachStatus({ message: "No shortlisted candidates (Score >= 70%) found to notify.", type: 'warning' });
+            return;
+        }
+
         setIsSendingEmails(true);
         setAllFinished(false);
 
         const initial = {};
-        selectedCandidates.forEach(email => initial[email] = 'waiting');
+        shortlisted.forEach(email => initial[email] = 'waiting');
         setCandidateStatuses(prev => ({ ...prev, ...initial }));
 
-        for (const email of selectedCandidates) {
+        for (const email of shortlisted) {
             if (candidateStatuses[email] !== 'success') {
                 await sendSingleEmail(email);
             }
@@ -400,6 +413,7 @@ function App() {
         setIsSendingEmails(false);
         setAllFinished(true);
         setSelectedCandidates([]); // Reset selection once broadcast is complete
+        setOutreachStatus({ message: `Successfully sent broadcast emails to ${shortlisted.length} shortlisted candidates.`, type: 'success' });
     };
 
     const handleRetry = async (e, email) => {
@@ -412,13 +426,27 @@ function App() {
 
     const handleNotifyRejected = async () => {
         if (!selectedJd) return;
+        
+        // Auto-tick rejected candidates (< 70) 
+        const rejected = candidatesForJd
+            .filter(c => (c.score?.total_score ?? c.score ?? 0) < 70)
+            .map(c => c.resume_data?.email)
+            .filter(e => !!e);
+            
+        setSelectedCandidates(rejected);
+
+        if (rejected.length === 0) {
+            setOutreachStatus({ message: "No rejected candidates (Score < 70%) found to notify.", type: 'warning' });
+            return;
+        }
+
         setIsNotifyingRejected(true);
         try {
             const res = await apiService.notifyRejected(selectedJd._id);
-            alert(res.message || "Rejection notifications started.");
+            setOutreachStatus({ message: res.message || "Rejection notifications have been successfully queued.", type: 'success' });
         } catch (error) {
             console.error(error);
-            alert("Failed to start rejection notifications.");
+            setOutreachStatus({ message: "Failed to start rejection notifications. Please check your credentials.", type: 'error' });
         } finally {
             setIsNotifyingRejected(false);
         }
@@ -694,6 +722,8 @@ function App() {
                                                         formatDate={formatDate}
                                                         isNotifyingRejected={isNotifyingRejected}
                                                         handleNotifyRejected={handleNotifyRejected}
+                                                        outreachStatus={outreachStatus}
+                                                        setOutreachStatus={setOutreachStatus}
                                                     />
                                                 )}
                                             </>
