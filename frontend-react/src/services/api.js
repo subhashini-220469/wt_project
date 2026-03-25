@@ -1,4 +1,5 @@
 const API_BASE = "http://localhost:8000";
+const NODE_API_BASE = "http://localhost:5000/api";
 
 export const apiService = {
     fetchJds: async (posted_by) => {

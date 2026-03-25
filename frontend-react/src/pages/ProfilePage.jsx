@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Mail, Building, Briefcase, Camera, Edit2, Save, X } from 'lucide-react';
+import { User, Mail, Building, Briefcase, Camera, Edit2, Save, X, Calendar, ShieldCheck, MapPin, Globe } from 'lucide-react';
 import authClient from '../services/authClient';
 import '../styles/ProfilePage.css';
 
@@ -180,19 +180,11 @@ const ProfilePage = ({ onProfileUpdate }) => {
                 </div>
 
                 <div className="profile-card status-card">
-                    <h3>Account Status</h3>
+                    <h3>Account Insights</h3>
                     <div className="status-item">
                         <div className="status-label">Member Since</div>
                         <div className="status-value">
                            {new Date(profile.createdAt || Date.now()).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric'})}
-                        </div>
-                    </div>
-                    <div className="status-item">
-                        <div className="status-label">Authentication</div>
-                        <div className="status-value">
-                            <span className={`provider-badge ${profile.provider === 'google' ? 'bg-red' : 'bg-blue'}`}>
-                                {profile.provider === 'google' ? 'Google OAuth' : 'Email/Password'}
-                            </span>
                         </div>
                     </div>
                 </div>

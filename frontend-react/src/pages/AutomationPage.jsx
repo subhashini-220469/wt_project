@@ -90,7 +90,7 @@ const AutomationPage = ({
                                                         type="checkbox"
                                                         checked={isSelected}
                                                         onChange={() => toggleCandidate(email)}
-                                                        disabled={isSendingEmails || status === 'success'}
+                                                        disabled={isSendingEmails}
                                                     />
                                                     <div className="check-info">
                                                         <strong>{c.resume_data?.name}</strong>
@@ -138,17 +138,6 @@ const AutomationPage = ({
                                     {isNotifyingRejected ? 'Notifying...' : 'Notify Rejected Candidates'}
                                 </button>
                             </div>
-
-                            {allFinished && (
-                                <motion.div
-                                    className="completion-banner"
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                >
-                                    <PartyPopper size={24} />
-                                    <span>Successfully Completed!</span>
-                                </motion.div>
-                            )}
                         </div>
                     )}
                 </div>
