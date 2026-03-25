@@ -3,8 +3,14 @@
   "version": "1.0.0",
   "description": "Root configuration to run multiple servers",
   "scripts": {
+<<<<<<< Updated upstream
     "dev": "concurrently -c \"cyan.bold,magenta.bold,green.bold\" -n \"PYTHON,NODE,REACT\" \"npm run dev:python\" \"npm run dev:node\" \"npm run dev:frontend\"",
     "dev:python": "cd backend && (./venv/bin/python seed.py &) && ./venv/bin/python main.py",
+=======
+    "dev": "concurrently -c \"cyan.bold,magenta.bold,yellow.bold,blue.bold\" -n \"SEED,PYTHON,NODE,REACT\" \"npm run dev:python:seed\" \"npm run dev:python:run\" \"npm run dev:node\" \"npm run dev:frontend\"",
+    "dev:python:seed": "cd backend && .\\\\venv\\\\Scripts\\\\python seed.py",
+    "dev:python:run": "cd backend && .\\\\venv\\\\Scripts\\\\python main.py",
+>>>>>>> Stashed changes
     "dev:node": "cd backend/node-backend && npm run dev",
     "dev:frontend": "cd frontend-react && npm run dev"
   },
