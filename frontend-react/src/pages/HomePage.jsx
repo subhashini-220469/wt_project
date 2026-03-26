@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Search as SearchIcon, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import Logo from '../components/Logo';
 
 const HomePage = () => {
     const navigate = useNavigate();
@@ -11,8 +12,7 @@ const HomePage = () => {
             {/* Header */}
             <header className="home-header">
                 <div className="home-logo-container">
-                    <span className="brand-smart-dark">smart</span>
-                    <span className="brand-hire-dark">Hire</span>
+                    <img src="/landing-logo.png" alt="Smart Hire" style={{ height: '50px', width: 'auto', display: 'block' }} />
                 </div>
                 <nav className="home-nav">
                     <button className="nav-link-btn" onClick={() => navigate('/auth')}>Find Jobs</button>
@@ -136,8 +136,7 @@ const HomePage = () => {
             <footer className="home-footer-new">
                 <div className="footer-content">
                     <div className="footer-logo">
-                        <span className="brand-smart-dark">smart</span>
-                        <span className="brand-hire-dark">Hire</span>
+                        <Logo size="140px" maxHeight="40px" />
                     </div>
                     <p>© 2026 SmartHire AI. All rights reserved.</p>
                     <div className="footer-links">

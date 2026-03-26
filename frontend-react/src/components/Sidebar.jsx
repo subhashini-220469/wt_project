@@ -11,13 +11,13 @@ import {
     FileText
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
+import Logo from './Logo';
 
 const Sidebar = ({ activeTab, setActiveTab, userRole, onLogout }) => {
     return (
         <aside className="sidebar">
             <a href="/" className="logo" onClick={(e) => { e.preventDefault(); setActiveTab(userRole === 'employer' ? 'post-job' : 'discover'); }}>
-                <span className="brand-smart">smart</span>
-                <span className="brand-hire">Hire</span>
+                <Logo size="140px" maxHeight="40px" variant="dark" />
             </a>
 
             <div className="role-indicator">

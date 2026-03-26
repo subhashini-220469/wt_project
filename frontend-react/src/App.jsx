@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from './components/Sidebar';
 import ScanningOverlay from './components/ScanningOverlay';
 import EmailModal from './components/EmailModal';
+import Logo from './components/Logo';
 
 import './styles/AppNotifications.css'; // Add notification styles
 
@@ -549,6 +550,7 @@ function App() {
                             <main className="main-content">
                                 <header className="top-header">
                                     <h1>
+                                        <Logo size="140px" maxHeight="50px" />
                                         {activeTab === 'post-job' ? 'Post a New Job Opening' :
                                             activeTab === 'managed-jobs' ? 'Manage Your Postings' :
                                                 activeTab === 'dashboard' ? 'Job Performance & Analytics' :

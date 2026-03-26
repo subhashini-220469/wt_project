@@ -108,11 +108,17 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-    font-size: 1.8rem;
-    font-weight: 900;
-    margin-bottom: 4rem;
-    letter-spacing: -1px;
+    margin-bottom: 3rem;
     text-decoration: none;
+    padding: 0;
+}
+
+.logo-static-wrapper {
+    transition: transform 0.3s ease;
+}
+
+.logo:hover .logo-static-wrapper {
+    transform: scale(1.05);
 }
 
 .logo .brand-smart {
@@ -213,6 +219,9 @@ body {
     font-weight: 800;
     color: #111827;
     letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
 }
 
 .user-profile img {

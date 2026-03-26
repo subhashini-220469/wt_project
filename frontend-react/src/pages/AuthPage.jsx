@@ -7,6 +7,7 @@ import axios from "axios";
 import authClient from "../services/authClient";
 import SmarthireSideCard from "../components/SmarthireSideCard";
 import OTPVerification from "../components/OTPVerification";
+import Logo from "../components/Logo";
 import '../styles/AuthPage.css';
 
 const AUTH_BASE = "http://localhost:5000";
@@ -339,8 +340,7 @@ const AuthPage = ({ onLoginSuccess }) => {
           >
             <h1 className="welcome-text">welcome</h1>
             <div className="branding-massive">
-              <span className="brand-smart">smart</span>
-              <span className="brand-hire">Hire</span>
+              <Logo size="280px" maxHeight="100px" variant="dark" />
             </div>
 
             <div className="visual-features" style={{ display: 'flex', gap: '2.5rem', marginTop: '4rem' }}>
