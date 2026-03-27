@@ -550,7 +550,6 @@ function App() {
                             <main className="main-content">
                                 <header className="top-header">
                                     <h1>
-                                        <Logo size="140px" maxHeight="50px" />
                                         {activeTab === 'post-job' ? 'Post a New Job Opening' :
                                             activeTab === 'managed-jobs' ? 'Manage Your Postings' :
                                                 activeTab === 'dashboard' ? 'Job Performance & Analytics' :
